@@ -25,6 +25,8 @@ ToDo:
 #include <stdarg.h>
 #include <Streaming.h>
 
+#include "rgb_pwm.h"
+
 //#include <TwiMap.h>
 //#include <I2cMaster.h>
 #include <brzo_i2c.h>
