@@ -91,7 +91,7 @@ void setupIotWebConf() {
   iotWebConf.addParameter(&iotNtpTzOffset);
     
   
-  iotWebConf.setStatusPin(STATUS_PIN);
+  iotWebConf.setStatusPin(IOTWC_STATUS_PIN);
   iotWebConf.setConfigPin(IOTWC_BUTTON_PIN);
   
   iotWebConf.setConfigSavedCallback(&configSaved);
@@ -137,7 +137,7 @@ void iotWebConfConvertStringParameters() {
 
   mqttHeartbeatIntervalInt = atoi(mqttHeartbeatInterval);
 
-  parolaCountModulesInt = atoi(parolaCountModules);
+//  parolaCountModulesInt = atoi(parolaCountModules);
 //  parolaCountModulesInt = 12;
 
   mqttTopicPraefixLength = strlen(mqttTopicPraefix);

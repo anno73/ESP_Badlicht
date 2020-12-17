@@ -36,9 +36,10 @@ void setupNtp () {
 //
 void loopNtp () {
 
-  static unsigned int oldSec = 0;
+//  static unsigned int oldSec = 0;
   static unsigned int oldMin = 0;
-  unsigned int nowSec, nowMin, nowHour;
+//  unsigned int nowSec, nowMin, nowHour;
+  unsigned int nowSec, nowMin;
   
   if ( ntpClient == NULL ) {
     return;
@@ -59,7 +60,7 @@ void loopNtp () {
 
   nowSec = ntpClient->getSeconds();
   nowMin = ntpClient->getMinutes();
-  nowHour = ntpClient->getHours();
+//  nowHour = ntpClient->getHours();
 
   // Print current time once in a while 
   if ((nowSec == 0) && (oldMin != nowMin)) {

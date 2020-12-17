@@ -2,8 +2,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <DNSServer.h>
-//#include <MQTT.h>
-//#include <IotWebConf.h>
+
 //#include <FS.h>
 
 // https://arduinojson.org/v6/doc/
@@ -154,10 +153,10 @@ void setup()
   iotWebConf.setApTimeoutMs(0);
 
   // -- Set up required URL handlers on the web server.
-  server.on("/", handleRoot);
-  //server.on("/boot", handleBoot);
-  server.on("/config", []{ iotWebConf.handleConfig(); });
-  server.onNotFound([](){ iotWebConf.handleNotFound(); });
+  webServer.on("/", handleRoot);
+  //webServer.on("/boot", handleBoot);
+  webServer.on("/config", []{ iotWebConf.handleConfig(); });
+  webServer.onNotFound([](){ iotWebConf.handleNotFound(); });
 
   /* 
   Serial << F("Initialize SPIFFS...\n");
@@ -209,9 +208,3 @@ void handleBoot()
   Serial << F("Reboot requested.\n");
   needReset = true;  
 }
-
-
-
-
-
-
