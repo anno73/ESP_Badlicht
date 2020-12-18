@@ -30,6 +30,8 @@
 
 #ifdef ESP8266
   #define ESP8266_DRD_USE_RTC   true
+#else
+  #error this is for esp8266 only
 #endif
 
 #define ESP_DRD_USE_LITTLEFS    false
