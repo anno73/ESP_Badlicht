@@ -1,0 +1,1 @@
+Placeholder for your data on flash file system like *.js and *.html files
