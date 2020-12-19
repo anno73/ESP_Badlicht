@@ -1,6 +1,37 @@
-//#include "time.h"
-//#include <TimeLib.h>
+
+#include <Streaming.h>
+
+// Probably replace with ESPDateTime
+// https://blog.mcxiaoke.com/ESPDateTime/
+// https://github.com/mcxiaoke/ESPDateTime
+
+
+#include <WiFiUdp.h>
+
 #include "ntp.h"
+
+
+
+char ntpServer[64] = "192.168.2.7";
+char ntpTzOffset[4] = "2";
+int ntpTzOffsetInt;
+unsigned int ntpLocalPort = 2390;
+const int ntpPacketSize = 48;
+unsigned long ntpUpdateInterval = 60000;
+
+byte packetBuffer[ntpPacketSize];
+
+WiFiUDP ntpUdp;
+NTPClient * ntpClient = NULL;
+
+// wifiConnected callback indicates that now we can/should issue a NTP update
+bool ntpNeedUpdate = false;
+// Set by mqtt - do not know how to set via NTPClient...
+bool timeValid = false;
+
+
+void setupNtp(void);
+
 
 
 bool updateNtp() {
@@ -21,10 +52,10 @@ bool updateNtp() {
 void setupNtp () {
   Serial << F("Setup NTP\n");
 
-//  ntpClient = new NTPClient(ntpUdp, ntpServer);
-  ntpClient = new NTPClient(ntpUdp);
+  ntpClient = new NTPClient(ntpUdp, ntpServer);
+//  ntpClient = new NTPClient(ntpUdp);
 
-  ntpClient->setPoolServerName(ntpServer);
+//  ntpClient->setPoolServerName(ntpServer);
   
   ntpClient->begin();
   ntpClient->setTimeOffset(ntpTzOffsetInt * 3600);

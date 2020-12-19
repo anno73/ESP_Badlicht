@@ -1,4 +1,11 @@
+#include <ArduinoOTA.h>
+#include <Streaming.h>
+
 #include "ota.h"
+#include "global.h"
+#include "iotWebConf.h"
+
+char otaUpdatePassword[40] = "";
 
 //
 // OTA
@@ -43,3 +50,8 @@ void setupArduinoOTA() {
 
   ArduinoOTA.begin();
 } // setupArduinoOTA
+
+void loopArduinoOTA()
+{
+  ArduinoOTA.handle();
+}

@@ -260,6 +260,7 @@ void loop();
 void setup();
 void beep(uint16_t firstArg, ...);
 void serialPerfTest(void);
+void dumpHelp(void);
 //*********************************************************************
 
 #if 0   // Arrays for Init, Step, Name of cycleMode
@@ -308,7 +309,7 @@ PROGMEM void (*cycleStepFuncs[])(void) =
   
   Initialize all the hardware and variables and ...
 **********************************************************************/
-void setup_RGB()
+void setupRgb()
 {            
   // Init Serial
 //  Serial.begin(1000000);
@@ -424,7 +425,7 @@ void setup_RGB()
   
   Main loop
 **********************************************************************/
-void loop_RGB()
+void loopRgb()
 {
 //  uint32_t loopStartUS = micros();
   

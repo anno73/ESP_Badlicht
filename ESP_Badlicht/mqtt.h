@@ -1,26 +1,30 @@
 #ifndef MY_MQTT_H
 #define MY_MQTT_H
 
-// https://github.com/256dpi/arduino-mqtt
 #include <MQTT.h>
+#include <MQTTClient.h>
+
+extern MQTTClient mqttClient;
+
+extern void setupMqttClient();
+extern void loopMqtt();
 
 
-MQTTClient mqttClient;
+extern char mqttServer[];
+extern char mqttPort[];
 
-char mqttServer[40] = "127.0.0.1";
-char mqttPort[6] = "1883";
-unsigned int mqttPortInt = 0;
-char mqttTopicPraefix[64] = "";
-unsigned int mqttTopicPraefixLength = 0;
-char mqttConnectRetryDelay[7] = "5000";
-unsigned int mqttConnectRetryDelayInt = 0;
-char mqttHeartbeatInterval[7] = "60000";  // set to 0 to turn off heartbeat
-unsigned long mqttHeartbeatIntervalInt;
-bool mqttDisabled = true;
-char mqttTimeTopic[64] = "";
+extern unsigned int mqttPortInt;
+extern char mqttTopicPraefix[];
+extern unsigned int mqttTopicPraefixLength;
+extern char mqttConnectRetryDelay[];
+extern unsigned int mqttConnectRetryDelayInt;
+extern char mqttHeartbeatInterval[];
+extern unsigned long mqttHeartbeatIntervalInt;
+//bool mqttDisabled = true;
+extern char mqttTimeTopic[];
 
 // wifiConnected callback indicates that MQTT can now connect to the broker
-boolean mqttNeedConnect = false;
+extern bool mqttNeedConnect;
 
 
 #endif

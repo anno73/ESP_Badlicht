@@ -1,5 +1,23 @@
+// https://github.com/256dpi/arduino-mqtt
+#include <MQTT.h>
+#include <MQTTClient.h>
 
-#include "mqtt.h"
+#include <Arduino.h>
+#include <Streaming.h>
+#include <TimeLib.h>
+
+#include <ESP8266WiFi.h>
+
+// https://arduinojson.org/v6/doc/
+#define ARDUINOJSON_USE_LONG_LONG 1
+#include <ArduinoJson.h>
+
+
+//#include "mqtt.h"
+#include "global.h"
+#include "ntp.h"
+#include "iotWebConf.h"
+
 
 /*
 
@@ -22,6 +40,26 @@
 
 
 */
+
+char mqttServer[40] = "127.0.0.1";
+char mqttPort[6] = "1883";
+unsigned int mqttPortInt = 0;
+char mqttTopicPraefix[64] = "";
+unsigned int mqttTopicPraefixLength = 0;
+char mqttConnectRetryDelay[7] = "5000";
+unsigned int mqttConnectRetryDelayInt = 0;
+char mqttHeartbeatInterval[7] = "60000";  // set to 0 to turn off heartbeat
+unsigned long mqttHeartbeatIntervalInt;
+bool mqttDisabled = true;
+char mqttTimeTopic[64] = "";
+
+// wifiConnected callback indicates that MQTT can now connect to the broker
+bool mqttNeedConnect = false;
+
+MQTTClient mqttClient;
+
+void mqttSendHeartbeat();
+void mqttMessageReceived(String &, String &);
 
 //
 //
@@ -49,7 +87,7 @@ void setupMqttClient() {
 //
 //
 //
-boolean connectMqtt() {
+bool connectMqtt() {
   static unsigned long lastConnectionAttempt = 0;   // persist across calls
   unsigned long now = millis();
 

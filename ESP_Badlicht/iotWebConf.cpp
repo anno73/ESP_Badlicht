@@ -1,5 +1,51 @@
 
-#include "iotWebConf.h"
+#include <Arduino.h>
+
+#include <string.h>
+#include <Streaming.h>
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266HTTPUpdateServer.h>
+#include <DNSServer.h>
+
+//#include "IotWebConf.h"
+//#include <IotWebConfCompatibility.h>
+
+
+#include "global.h"
+
+#include "IotWebConf.h"
+
+#include "mqtt.h"
+#include "ota.h"
+#include "ntp.h"
+
+// -- Configuration specific key. The value should be modified if config structure was changed.
+#define IOTWC_CONFIG_VERSION "BADRGB_001"
+
+// -- When BUTTON_PIN is pulled to ground on startup, the Thing will use the initial
+//      password to build an AP. (E.g. in case of lost password)
+#define IOTWC_BUTTON_PIN 2
+
+// -- Status indicator pin.
+//      First it will light up (kept LOW), on Wifi connection it will blink,
+//      when connected to the Wifi it will turn off (kept HIGH).
+#define IOTWC_STATUS_PIN LED_BUILTIN
+
+DNSServer dnsServer;
+ESP8266WebServer webServer(80);
+WiFiClient wifiClient;
+
+// -- Initial name of the Thing. Used e.g. as SSID of the own Access Point.
+const char appName[] = "BAD_RGB";
+
+// -- Initial password to connect to the Thing, when it creates an own Access Point.
+const char wifiInitialApPassword[] = "12345678";
+
+IotWebConf iotWebConf(appName, &dnsServer, &webServer, wifiInitialApPassword, IOTWC_CONFIG_VERSION);
+
+void iotWebConfConvertStringParameters(void);
 
 // Callback method declarations - find implementation after IotWebConf initialization
 void wifiConnected();
@@ -66,6 +112,8 @@ IotWebConfParameter iotNtpTzOffset = IotWebConfParameter(
   "number"
 );
 
+ESP8266HTTPUpdateServer httpUpdateServer;
+
 
 //
 //
@@ -100,7 +148,7 @@ void setupIotWebConf() {
   iotWebConf.setupUpdateServer(&httpUpdateServer);
 
   // Initialize configuration
-  boolean validConfig = iotWebConf.init();
+  bool validConfig = iotWebConf.init();
   if (! validConfig) {
     Serial << F("iotWebConf did not find valid config. Initializing\n");
 
@@ -121,10 +169,16 @@ void setupIotWebConf() {
 
   // Set up required URL handlers on the web server
   webServer.on("/", handleRoot);
+//  webServer.on("/boot", handleBoot);
   webServer.on("/config", [] { iotWebConf.handleConfig(); });
   webServer.onNotFound([]() { iotWebConf.handleNotFound(); });
 
 } // setupIotWebConv
+
+void loopIotWebConf()
+{
+    iotWebConf.doLoop();
+}
 
 //
 //
@@ -152,7 +206,7 @@ void iotWebConfConvertStringParameters() {
 void handleRoot()
 {
   if (iotWebConf.handleCaptivePortal()) {
-    // Let IotWebConf test and handle captive portal reqeusts.
+    // Let IotWebConf test and handle captive portal requests.
     return;
   }
 
@@ -181,6 +235,12 @@ void handleRoot()
   webServer.send(200, "text/html", s);
 } // handleRoot
 
+void handleBoot()
+{
+  Serial << F("Reboot requested.\n");
+  needReset = true;  
+} // handleBoot
+
 //
 //
 //
@@ -202,7 +262,7 @@ void configSaved() {
 bool formValidator() {
   Serial << F("Validating form\n");
 
-  boolean valid = true;
+  bool valid = true;
 
 
   // check for digits in numeric values?

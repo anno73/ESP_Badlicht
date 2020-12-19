@@ -3,4 +3,7 @@
 
 #include "mqtt.h"
 
+extern void setupRgb();
+extern void loopRgb();
+
 #endif
