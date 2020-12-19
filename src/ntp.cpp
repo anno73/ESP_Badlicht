@@ -12,8 +12,8 @@
 
 
 
-char ntpServer[64] = "192.168.2.7";
-char ntpTzOffset[4] = "2";
+char ntpServer[NTP_SERVER_STR_LEN] = "192.168.2.7";
+char ntpTzOffset[NTP_TZ_OFFSET_STR_LEN] = "2";
 int ntpTzOffsetInt;
 unsigned int ntpLocalPort = 2390;
 const int ntpPacketSize = 48;

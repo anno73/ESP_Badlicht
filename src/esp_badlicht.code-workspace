@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"name": "ESP_Badlicht",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"array": "cpp",
+			"limits": "cpp",
+			"type_traits": "cpp"
+		}
+	}
+}

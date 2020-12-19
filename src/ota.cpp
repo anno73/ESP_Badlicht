@@ -3,14 +3,14 @@
 
 #include "ota.h"
 #include "global.h"
-#include "iotWebConf.h"
+#include "iotWebConf_.h"
 
-char otaUpdatePassword[40] = "";
+char otaUpdatePassword[OTA_UPDATE_PASWORD_STR_LEN] = "";
 
 //
 // OTA
 //
-void setupArduinoOTA() {
+void setupArduinoOta() {
   Serial << F("OTA setup\n");
 
   ArduinoOTA.setHostname(appName);
@@ -51,7 +51,7 @@ void setupArduinoOTA() {
   ArduinoOTA.begin();
 } // setupArduinoOTA
 
-void loopArduinoOTA()
+void loopArduinoOta()
 {
   ArduinoOTA.handle();
 }

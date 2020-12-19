@@ -6,9 +6,13 @@
 // BEWARE: there are some forks and libs with similar name!
 #include <NTPClient.h>
 
+#define NTP_SERVER_STR_LEN 64
 extern char ntpServer[];
+
+#define NTP_TZ_OFFSET_STR_LEN 4
 extern char ntpTzOffset[];
 extern int ntpTzOffsetInt;
+
 //unsigned int ntpLocalPort = 2390;
 //const int ntpPacketSize = 48;
 //unsigned long ntpUpdateInterval = 60000;

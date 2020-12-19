@@ -11,7 +11,7 @@
 
 #include "global.h"
 #include "mqtt.h"
-#include "iotWebConf.h"
+#include "iotWebConf_.h"
 #include "ota.h"
 #include "ntp.h"
 #include "rgb_pwm.h"
@@ -101,7 +101,7 @@ void setup()
 
   setupNtp();
 
-  setupArduinoOTA();
+  setupArduinoOta();
 
   /* 
   Serial << F("Initialize SPIFFS...\n");
@@ -129,7 +129,7 @@ void loop()
 {
 
   loopIotWebConf();
-  loopArduinoOTA();
+  loopArduinoOta();
 
   drd.loop();
 

@@ -9,13 +9,13 @@
 #include <ESP8266HTTPUpdateServer.h>
 #include <DNSServer.h>
 
-//#include "IotWebConf.h"
+#include <IotWebConf.h>
 //#include <IotWebConfCompatibility.h>
 
 
 #include "global.h"
 
-#include "IotWebConf.h"
+#include "iotWebConf_.h"
 
 #include "mqtt.h"
 #include "ota.h"
@@ -43,14 +43,17 @@ const char appName[] = "BAD_RGB";
 // -- Initial password to connect to the Thing, when it creates an own Access Point.
 const char wifiInitialApPassword[] = "12345678";
 
-IotWebConf iotWebConf(appName, &dnsServer, &webServer, wifiInitialApPassword, IOTWC_CONFIG_VERSION);
 
+// -- Method declarations.
 void iotWebConfConvertStringParameters(void);
 
 // Callback method declarations - find implementation after IotWebConf initialization
 void wifiConnected();
 void configSaved();
 bool formValidator();
+
+IotWebConf iotWebConf(appName, &dnsServer, &webServer, wifiInitialApPassword, IOTWC_CONFIG_VERSION);
+
 
 IotWebConfSeparator iotMqttSeparator = IotWebConfSeparator("MQTT Parameter");
   // label, id
@@ -59,36 +62,36 @@ IotWebConfSeparator iotMqttSeparator = IotWebConfSeparator("MQTT Parameter");
   // default value, custom HTML
 IotWebConfParameter iotMqttServer = IotWebConfParameter(
   "MQTT Server", "mqttServer", 
-  mqttServer, sizeof(mqttServer),
+  mqttServer, MQTT_SERVER_STR_LEN,
   "text", mqttServer,
   mqttServer, NULL
 );
 IotWebConfParameter iotMqttPort = IotWebConfParameter(
   "MQTT Port", "mqttPort", 
-  mqttPort, sizeof(mqttPort), 
+  mqttPort, MQTT_PORT_STR_LEN, 
   "text", mqttPort
 );
 //IotWebConfParameter iotMqttPort = IotWebConfParameter("MQTT Port", "mqttPort", mqttPort, 5, "number", "1..65535", NULL, "min='1' max='65535' step='1'");
 IotWebConfParameter iotMqttTopicPraefix = IotWebConfParameter(
   "MQTT Topic Praefix", "mqttTopicPraefix", 
-  mqttTopicPraefix, sizeof(mqttTopicPraefix)
+  mqttTopicPraefix, MQTT_TOPIC_PRAEFIX_STR_LEN
 );
 IotWebConfParameter iotMqttHeartbeatInterval = IotWebConfParameter(
   "MQTT Hearbeat Interval", "mqttHeartbeatInterval",
-  mqttHeartbeatInterval, sizeof(mqttHeartbeatInterval), 
+  mqttHeartbeatInterval, MQTT_HEARTBEAT_INTERVALL_STR_LEN, 
   "number", "in millis", 
   mqttHeartbeatInterval, "min='1' max='65535' step='1'"
 );
 IotWebConfParameter iotMqttTimeTopic = IotWebConfParameter(
   "MQTT Time Topic", "mqttTimeTopic",
-  mqttTimeTopic, sizeof(mqttTimeTopic), 
+  mqttTimeTopic, MQTT_TIME_TOPIC_STR_LEN, 
   "text"
 );
 
 IotWebConfSeparator iotOtaSeparator = IotWebConfSeparator("OTA Parameter");
 IotWebConfParameter iotOtaUpdatePassword = IotWebConfParameter(
   "OTA Update Password", "otaUpdatePassword", 
-  otaUpdatePassword, sizeof(otaUpdatePassword),
+  otaUpdatePassword, OTA_UPDATE_PASWORD_STR_LEN,
   "password"
 );
 
@@ -103,12 +106,12 @@ IotWebConfParameter iotParolaCountModules = IotWebConfParameter(
 IotWebConfSeparator iotNtpSeparator = IotWebConfSeparator("NTP");
 IotWebConfParameter iotNtpServer = IotWebConfParameter(
   "NTP Server", "ntpServer", 
-  ntpServer, sizeof(ntpServer),
+  ntpServer, NTP_SERVER_STR_LEN,
   "text"
 );
 IotWebConfParameter iotNtpTzOffset = IotWebConfParameter(
   "NTP timezone Offset", "ntpTzOffset", 
-  ntpTzOffset, sizeof(ntpTzOffset),
+  ntpTzOffset, NTP_TZ_OFFSET_STR_LEN,
   "number"
 );
 

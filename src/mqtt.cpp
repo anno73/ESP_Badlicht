@@ -12,11 +12,10 @@
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 
-
 //#include "mqtt.h"
 #include "global.h"
 #include "ntp.h"
-#include "iotWebConf.h"
+#include "iotWebConf_.h"
 
 
 /*
@@ -41,17 +40,17 @@
 
 */
 
-char mqttServer[40] = "127.0.0.1";
-char mqttPort[6] = "1883";
+char mqttServer[MQTT_SERVER_STR_LEN] = "127.0.0.1";
+char mqttPort[MQTT_PORT_STR_LEN] = "1883";
 unsigned int mqttPortInt = 0;
-char mqttTopicPraefix[64] = "";
+char mqttTopicPraefix[MQTT_TOPIC_PRAEFIX_STR_LEN] = "";
 unsigned int mqttTopicPraefixLength = 0;
-char mqttConnectRetryDelay[7] = "5000";
+char mqttConnectRetryDelay[MQTT_CONNECT_RETRY_DELAY_STR_LEN] = "5000";
 unsigned int mqttConnectRetryDelayInt = 0;
-char mqttHeartbeatInterval[7] = "60000";  // set to 0 to turn off heartbeat
+char mqttHeartbeatInterval[MQTT_HEARTBEAT_INTERVALL_STR_LEN] = "60000";  // set to 0 to turn off heartbeat
 unsigned long mqttHeartbeatIntervalInt;
 bool mqttDisabled = true;
-char mqttTimeTopic[64] = "";
+char mqttTimeTopic[MQTT_TIME_TOPIC_STR_LEN] = "";
 
 // wifiConnected callback indicates that MQTT can now connect to the broker
 bool mqttNeedConnect = false;

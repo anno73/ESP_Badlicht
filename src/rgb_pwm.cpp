@@ -1530,8 +1530,8 @@ void hsv2pca(double h, double s, double v, uint16_t *_r, uint16_t *_g, uint16_t 
   
   blocking
 **********************************************************************/
-//void beep(uint16_t firstArg, ...)
-void beep(int firstArg, ...)
+void beep(uint16_t firstArg, ...)
+//void beep(int firstArg, ...)
 {
   return; 
   
