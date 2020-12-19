@@ -25,7 +25,6 @@ extern NTPClient * ntpClient;
 // wifiConnected callback indicates that now we can/should issue a NTP update
 extern bool ntpNeedUpdate;
 
-
 extern void setupNtp();
 extern void loopNtp();
 extern bool timeValid;

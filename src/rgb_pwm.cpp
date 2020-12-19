@@ -25,6 +25,7 @@ ToDo:
 #include <stdarg.h>
 #include <Streaming.h>
 
+#include "global.h"
 #include "rgb_pwm.h"
 
 //#include <TwiMap.h>
@@ -67,7 +68,7 @@ ToDo:
 
 // Every PCA has 16 separate PWM lines.
 // Every strip attached requires 3 lines.
-// That's a max of 5 stips per PCA plus leaves 1 line free.
+// That's a max of 5 strips per PCA plus leaves 1 line free.
 #define PCA_LAST_ADDRESS (PCA_BASE_ADDRESS + (((MAX_STRIPS * 3) / 16) * 2))
 
 // Streaming c++ like output
@@ -615,7 +616,7 @@ uint8_t processSerialInput(char c)
     newCycleModeSelected = true;
     break;
   // Execution control
-  case 'b': // dimm brightness
+  case 'b': // dim brightness
     if (pwm_oe >= 10)
       pwm_oe -= 10;
     else
@@ -1047,7 +1048,7 @@ void uniform_Step(void)
   hsv2pca(strip[0].h, strip[0].s, strip[0].v, 
     &pca_rgb.rgb[0].r, &pca_rgb.rgb[0].g, &pca_rgb.rgb[0].b);
 
-  // Polulate RGB
+  // Populate RGB
   uni_Init(pca_rgb.rgb[0].r, pca_rgb.rgb[0].g, pca_rgb.rgb[0].b);
 } // uniform_Step
 #endif
@@ -1271,7 +1272,7 @@ void updatePanel(void)
   uint8_t chip = PCA_BASE_ADDRESS;
   
   // Each PCA has 16 channels. We only use 15 at most (R, G, B)
-  // Every Stip requires 3 channels (RGB), so we have at most 5 strips per PCA
+  // Every Strip requires 3 channels (RGB), so we have at most 5 strips per PCA
 
   for (uint8_t i = 0; i < MAX_STRIPS * 3; i += 15, chip += 2)
   {
@@ -1368,7 +1369,7 @@ bool pca_init(uint8_t addr)
     4 invrt   0 // 0: not inverted (driver), 1: inverted (no driver)
     3 och   0 // output change: 0: stop cmd, 1: ack
     2 outdrv  1 // 0: open-drain, 1: totem pole
-    1 outne1  0 // /OE=1 & 00: LEDn=0   10: high impdadance
+    1 outne1  0 // /OE=1 & 00: LEDn=0   10: high impedance
     0 outne0  0 //  01 & OUTDRV=1: LDEn=1, OUTDRV=0: high impedance
 
     0 0 0 0 . 0 1 0 0

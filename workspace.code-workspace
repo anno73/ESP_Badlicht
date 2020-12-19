@@ -3,5 +3,13 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"cSpell.words": [
+			"PCAs",
+			"invrt",
+			"outdrv",
+			"outne"
+		]
+	}
 }

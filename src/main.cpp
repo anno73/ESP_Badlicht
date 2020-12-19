@@ -49,16 +49,6 @@ extern "C" {
 }
 
 
-//#define STRING_LEN 128
-
-
-//#define MQTT_TOPIC_PREFIX ""
-
-
-// -- Callback method declarations.
-//void mqttMessageReceived(String &topic, String &data);
-
-
 bool needReset = false;
 
 

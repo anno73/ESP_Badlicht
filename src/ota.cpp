@@ -1,14 +1,14 @@
 #include <ArduinoOTA.h>
 #include <Streaming.h>
 
-#include "ota.h"
 #include "global.h"
+#include "ota.h"
 #include "iotWebConf_.h"
 
 char otaUpdatePassword[OTA_UPDATE_PASWORD_STR_LEN] = "";
 
 //
-// OTA
+// Called by main setup
 //
 void setupArduinoOta() {
   Serial << F("OTA setup\n");
@@ -49,9 +49,12 @@ void setupArduinoOta() {
   });
 
   ArduinoOTA.begin();
-} // setupArduinoOTA
+} // setupArduinoOta
 
+//
+// Called by main loop.
+//
 void loopArduinoOta()
 {
   ArduinoOTA.handle();
-}
+} // loopArduinoOta

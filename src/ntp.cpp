@@ -1,20 +1,17 @@
-
+#include <Arduino.h>
 #include <Streaming.h>
 
 // Probably replace with ESPDateTime
 // https://blog.mcxiaoke.com/ESPDateTime/
 // https://github.com/mcxiaoke/ESPDateTime
 
-
-#include <WiFiUdp.h>
-
 #include "ntp.h"
 
-
-
 char ntpServer[NTP_SERVER_STR_LEN] = "192.168.2.7";
+
 char ntpTzOffset[NTP_TZ_OFFSET_STR_LEN] = "2";
 int ntpTzOffsetInt;
+
 unsigned int ntpLocalPort = 2390;
 const int ntpPacketSize = 48;
 unsigned long ntpUpdateInterval = 60000;
@@ -49,13 +46,13 @@ bool updateNtp() {
   return rc;
 }
 
+//
+// Called by main setup
+//
 void setupNtp () {
   Serial << F("Setup NTP\n");
 
   ntpClient = new NTPClient(ntpUdp, ntpServer);
-//  ntpClient = new NTPClient(ntpUdp);
-
-//  ntpClient->setPoolServerName(ntpServer);
   
   ntpClient->begin();
   ntpClient->setTimeOffset(ntpTzOffsetInt * 3600);
@@ -63,7 +60,7 @@ void setupNtp () {
 } // setupNtp
 
 //
-//
+// Called by main loop
 //
 void loopNtp () {
 
@@ -100,10 +97,4 @@ void loopNtp () {
     Serial << F("NTP time is ") << ntpClient->getFormattedTime() << endl;
   }
 
-/*  // Update time on display every second
-  if (oldSec != nowSec) {
-    oldSec = nowSec;
-    parolaSetTime(nowHour, nowMin, nowSec);
-  }
-*/
 } // loopNtp
