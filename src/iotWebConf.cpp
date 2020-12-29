@@ -86,7 +86,7 @@ IotWebConfParameter iotMqttTimeTopic = IotWebConfParameter(
 IotWebConfSeparator iotOtaSeparator = IotWebConfSeparator("OTA Parameter");
 IotWebConfParameter iotOtaUpdatePassword = IotWebConfParameter(
   "OTA Update Password", "otaUpdatePassword", 
-  otaUpdatePassword, OTA_UPDATE_PASWORD_STR_LEN,
+  ota::otaUpdatePassword, OTA_UPDATE_PASWORD_STR_LEN,
   "password"
 );
 
@@ -142,7 +142,7 @@ void setupIotWebConf() {
     mqttHeartbeatInterval[0] = 0;
     mqttTimeTopic[0] = 0;
 
-    otaUpdatePassword[0] = 0;
+    ota::otaUpdatePassword[0] = 0;
 
     ntpServer[0] = 0;
     ntpTzOffset[0] = 0;

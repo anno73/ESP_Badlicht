@@ -5,6 +5,8 @@
 #include "ota.h"
 #include "iotWebConf_.h"
 
+namespace ota {
+
 char otaUpdatePassword[OTA_UPDATE_PASWORD_STR_LEN] = "";
 
 //
@@ -58,3 +60,6 @@ void loopArduinoOta()
 {
   ArduinoOTA.handle();
 } // loopArduinoOta
+
+
+} // namespace

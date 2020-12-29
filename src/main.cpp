@@ -91,7 +91,7 @@ void setup()
 
   setupNtp();
 
-  setupArduinoOta();
+  ota::setupArduinoOta();
 
   /* 
   Serial << F("Initialize SPIFFS...\n");
@@ -119,7 +119,7 @@ void loop()
 {
 
   loopIotWebConf();
-  loopArduinoOta();
+  ota::loopArduinoOta();
 
   drd.loop();
 
