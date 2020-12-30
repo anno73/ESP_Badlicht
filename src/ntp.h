@@ -1,5 +1,4 @@
-#ifndef MY_NTP_H
-#define MY_NTP_H
+#pragma once
 
 #include <WiFiUdp.h>
 // https://github.com/arduino-libraries/NTPClient
@@ -28,5 +27,3 @@ extern bool ntpNeedUpdate;
 extern void setupNtp();
 extern void loopNtp();
 extern bool timeValid;
-
-#endif

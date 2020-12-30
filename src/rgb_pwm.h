@@ -1,6 +1,4 @@
-#ifndef MY_RGB_PWM_H
-#define MY_RGB_PWM_H
-
+#pragma once
 //#include "mqtt.h"
 
 extern void setupRgb();
@@ -17,6 +15,3 @@ extern void setRelativeSpeedRGB(int16_t);
 
 extern void enableBeepRGB(void);
 extern void disableBeepRGB(void);
-
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef MY_IOTWEBCONF_H
-#define MY_IOTWEBCONF_H
+#pragma once
 
 // https://github.com/prampec/IotWebConf
 #define IOTWEBCONF_DEBUG_DISABLED
@@ -14,5 +13,3 @@ extern const char appName[];
 extern void setupIotWebConf();
 extern void loopIotWebConf();
 extern void handleRoot();
-
-#endif
