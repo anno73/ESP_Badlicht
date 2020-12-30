@@ -1,5 +1,4 @@
-#ifndef MY_OTA_H
-#define MY_OTA_H
+#pragma once
 
 namespace ota {
 
@@ -10,4 +9,3 @@ extern void setupArduinoOta();
 extern void loopArduinoOta();
 
 }
-#endif
