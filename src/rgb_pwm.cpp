@@ -19,7 +19,6 @@ ToDo:
   add pause after end of fade
 **********************************************************************/
 
-
 #define _GNU_SOURCE
 #include <arduino.h>
 #include <stdarg.h>
@@ -34,24 +33,26 @@ ToDo:
 
 // #include <digitalWriteFast.h>  // currently not supported by Arduino Leonardo
 
+const bool stubPCA = true;
+
 // 15 strips in prod
 // 5 in test
-#define MAX_STRIPS  5
+const uint8_t MAX_STRIPS = 5;
 
-#define PWM_OE_PIN  9
+const uint8_t PWM_OE_PIN = 9;
 
 //          SDA    SCL
 // NodeMCU   4      5
 // ESP-01    0      2
 // Nano      2      3
-#define IIC_DTA   4
-#define IIC_CLK   5
-#define IIC_STRETCH  1000   // time in us to allow stretch from a slave
-#define IIC_FREQ 100        // SCL frequency in kHz
+const uint8_t IIC_DTA = 4;
+const uint8_t IIC_CLK = 5;
+const uint16_t IIC_STRETCH = 1000; // time in us to allow stretch from a slave
+const uint16_t IIC_FREQ = 100;     // SCL frequency in kHz
 
-#define BUZZER    7       // Pull active Buzzer to low
-#define BUZZER_ON 0       // Pull to ground to turn buzzer on
-#define BUZZER_OFF  1
+const uint8_t BUZZER = 7;     // Pull active Buzzer to low
+const uint8_t BUZZER_ON = 0;  // Pull to ground to turn buzzer on
+const uint8_t BUZZER_OFF = 1; //
 
 //#define SERIAL_BAUD   0L
 //#define SERIAL_BAUD   19200L
@@ -63,20 +64,20 @@ ToDo:
 
 // Address is 1 A5 A4 A3 A2 A1 A0 R/!W
 // So if A0-A5 == 0, 1st address is 0x80
-#define PCA_BASE_ADDRESS  (0x80 >> 1)
-#define PCA_ALLCALL_ADDRESS (0xE0 >> 1)
+const uint8_t PCA_BASE_ADDRESS = (0x80 >> 1);
+const uint8_t PCA_ALLCALL_ADDRESS = (0xE0 >> 1);
 
 // Every PCA has 16 separate PWM lines.
 // Every strip attached requires 3 lines.
 // That's a max of 5 strips per PCA plus leaves 1 line free.
-#define PCA_LAST_ADDRESS (PCA_BASE_ADDRESS + (((MAX_STRIPS * 3) / 16) * 2))
+const uint8_t PCA_LAST_ADDRESS = (PCA_BASE_ADDRESS + (((MAX_STRIPS * 3) / 16) * 2));
 
 // Streaming c++ like output
 // http://playground.arduino.cc/Main/StreamingOutput
 // Serial << "text 1" << someVariable << "Text 2" ... ;
 //template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; }
 
-#if 1   // EEPROM related stuff
+#if 1 // EEPROM related stuff
 /**********************************************************************
   We have about 1k of EEPROM to use to store data across restarts
   
@@ -93,36 +94,36 @@ ToDo:
 //#include <EEPROMAnything.h>
 #include <EEPROM.h>
 
-#define EEPROM_ADDR_BASE        1024                     // Template
-#define EEPROM_ADDR_CYCLEMODE   (EEPROM_ADDR_BASE + 0)   // cycleMode
-#define EEPROM_ADDR_SPEED       (EEPROM_ADDR_BASE + 2)   // stepDelay
-#define EEPROM_ADDR_BRIGHT      (EEPROM_ADDR_BASE + 4)   // pwm_oe
-#define EEPROM_ADDR_SEED        (EEPROM_ADDR_BASE + 6)   // seedValue
-#define EEPROM_ADDR_DOBEEP      (EEPROM_ADDR_BASE + 8)   // Beep on command
-#define EEPROM_ADDR_SPEED_UNI   (EEPROM_ADDR_BASE + 10)
-#define EEPROM_ADDR_SPEED_CLOUD (EEPROM_ADDR_BASE + 12)
-#define EEPROM_ADDR_SPEED_WAVE  (EEPROM_ADDR_BASE + 14)
-#define EEPROM_SIZE             32
+static uint16_t EEPROM_ADDR_BASE = 1024;                         // Template
+static uint16_t EEPROM_ADDR_CYCLEMODE = EEPROM_ADDR_BASE + 0;    // cycleMode
+static uint16_t EEPROM_ADDR_SPEED = EEPROM_ADDR_BASE + 2;        // stepDelay
+static uint16_t EEPROM_ADDR_BRIGHT = EEPROM_ADDR_BASE + 4;       // pwm_oe
+static uint16_t EEPROM_ADDR_SEED = EEPROM_ADDR_BASE + 6;         // seedValue
+static uint16_t EEPROM_ADDR_DOBEEP = EEPROM_ADDR_BASE + 8;       // Beep on command
+static uint16_t EEPROM_ADDR_SPEED_UNI = EEPROM_ADDR_BASE + 10;   //
+static uint16_t EEPROM_ADDR_SPEED_CLOUD = EEPROM_ADDR_BASE + 12; //
+static uint16_t EEPROM_ADDR_SPEED_WAVE = EEPROM_ADDR_BASE + 14;  //
+static uint16_t EEPROM_SIZE = 32;
 
 #endif
 
-#if 1   // Abort & Debug Macros
+#if 1 // Abort & Debug Macros
 // Define macro for error handling
-#define ABORT_UNLESS(A)         \
-  if (! (A) )             \
-  {                   \
-    _ABORT_LINE = __LINE__;     \
-    goto ABORT;           \
+#define ABORT_UNLESS(A)     \
+  if (!(A))                 \
+  {                         \
+    _ABORT_LINE = __LINE__; \
+    goto ABORT;             \
   }
 uint16_t _ABORT_LINE;
 
 // Define macro for debugging
-// Initialize debug 
-#define DBG_INIT(BUFF)              \
-    {                   \
-      const char bl = (BUFF);       \
-      char buff[bl];            \
-      uint8_t bp = snprintf(buff, bl,     
+// Initialize debug
+#define DBG_INIT(BUFF)      \
+  {                         \
+    const char bl = (BUFF); \
+    char buff[bl];          \
+      uint8_t bp = snprintf(buff, bl,
 
 // Put the printf compatible debug statement here
 // e.g.: "Initial s0=%g sn=%g, sd=%g", s0, sn, sd
@@ -132,20 +133,22 @@ uint16_t _ABORT_LINE;
 // bp is printed chars to buffer
 // It is possible prepend debug output with chars unused in buffer + '|' separator
 // Tell user if there would have been more to print but was not due to buffer size
-#define DBG_DONE                        \
-    );                            \
-      if (1) { Serial << (bl - bp) << '|'; }        \
-      Serial.println(buff);               \
-      if (bp > bl - 1)                  \
-      {                         \
-        Serial << F("snprintf: buffer exceeded: need ") \
-          << bp                   \
-          << F(" chars on line ")           \
-          << __LINE__ - 1            \
-          << endl                   \
-        ;                       \
-      }                         \
-    }
+#define DBG_DONE                                    \
+    );                                              \
+  if (1)                                            \
+  {                                                 \
+    Serial << (bl - bp) << '|';                     \
+  }                                                 \
+  Serial.println(buff);                             \
+  if (bp > bl - 1)                                  \
+  {                                                 \
+    Serial << F("snprintf: buffer exceeded: need ") \
+           << bp                                    \
+           << F(" chars on line ")                  \
+           << __LINE__ - 1                          \
+           << endl;                                 \
+  }                                                 \
+  }
 #endif
 
 typedef struct
@@ -165,34 +168,35 @@ typedef union
   uint16_t a[MAX_STRIPS * 3];
 } pca_rgb_ut;
 
-hsv_st    strip[MAX_STRIPS];    // Every strip's color
-hsv_st    hsvDelta[MAX_STRIPS]; // Delta color for cycling
-uint16_t  countMaxSteps = 0;    // Steps for a cycle periode
-uint16_t  countSteps = 0;     // Step within cycle
+hsv_st strip[MAX_STRIPS];    // Every strip's color
+hsv_st hsvDelta[MAX_STRIPS]; // Delta color for cycling
+uint16_t countMaxSteps = 0;  // Steps for a cycle periode
+uint16_t countSteps = 0;     // Step within cycle
 
-pca_rgb_ut  pca_rgb;
+pca_rgb_ut pca_rgb;
 
 // enum for all valid program cycle modes
-enum cycleMode_t { 
-  noChange = 0,   // First element. Stop running program, keep last HLS
+enum cycleMode_t
+{
+  noChange = 0, // First element. Stop running program, keep last HLS
 
-  allOff = 1, 
-  allOn = 2, 
-  
-  red = 3,      // all strips same color
-  green = 4, 
-  blue = 5,     // all strips same color
-  
-  uniform = 6,    // all strips same color, cycle through HLS
-  cloud = 7, 
+  allOff = 1,
+  allOn = 2,
+
+  red = 3, // all strips same color
+  green = 4,
+  blue = 5, // all strips same color
+
+  uniform = 6, // all strips same color, cycle through HLS
+  cloud = 7,
   wave = 8,
-  
+
   debug = 9,
-  
-  illegal = 10    // End element. Maybe we cycle through programs in the future.
+
+  illegal = 10 // End element. Maybe we cycle through programs in the future.
 };
 
-boolean newCommandAvail = false;
+bool newCommandAvail = false;
 char newCommand = ' ';
 
 // https://stackoverflow.com/questions/4437527/why-do-we-use-volatile-keyword-in-c
@@ -202,26 +206,27 @@ volatile cycleMode_t cycleModeOld;
 
 void (*init_func)(void);
 void (*step_func)(void);
-void (*speed_func)(int8_t);
+//void (*speed_func)(int8_t);
 bool newCycleModeSelected;
 uint32_t lastStepTS = 0;
-uint16_t stepDelay = 10;    // ### uint16_t??? maybe uit8_t is sufficient
+uint16_t stepDelay = 10; // ### uint16_t??? maybe uit8_t is sufficient
 
 //TwiMaster iic(true);
 
 uint8_t deb_strip = 0;
 uint8_t deb_color = 0;
 
-uint8_t pwm_oe = 0;       // 0 -> full On, 255 -> full Off
+uint8_t pwm_oe = 0; // 0 -> full On, 255 -> full Off
 
 uint32_t loopCount = 0;
 
 uint16_t seedValue = 0;
 
 // Reset on ATMega328. On ESP possibly different.
-void (*doSoftwareReset)(void) = 0;  //declare reset function at address 0
+//void (*doSoftwareReset)(void) = 0;  //declare reset function at address 0
+void doSoftwareReset() { ESP.reset(); } //declare ESP reset function
 
-uint8_t doBeep = 1;       // Beep if true on various occasions
+uint8_t doBeep = 1; // Beep if true on various occasions
 
 /**********************************************************************
   Function Prototypes
@@ -264,7 +269,7 @@ void serialPerfTest(void);
 void dumpHelp(void);
 //*********************************************************************
 
-#if 0   // Arrays for Init, Step, Name of cycleMode
+#if 0 // Arrays for Init, Step, Name of cycleMode
 PROGMEM const char *cycleName[] =
 {
   "noChange",
@@ -311,34 +316,28 @@ PROGMEM void (*cycleStepFuncs[])(void) =
   Initialize all the hardware and variables and ...
 **********************************************************************/
 void setupRgb()
-{            
+{
   // Init Serial
-//  Serial.begin(1000000);
-//  Serial.begin(SERIAL_BAUD);
-//  Serial1.begin(SERIAL1_BAUD);
-
-//  while (! Serial);       // For Leonardo to settle USB
+  //  Serial.begin(1000000);
+  //  Serial.begin(SERIAL_BAUD);
 
   delay(10);
 
-//  pinMode(IIC_DTA, OUTPUT); while ( 1 ) { digitalWrite(IIC_DTA, ! digitalRead(IIC_DTA)); delay(1); };
-//  pinMode(IIC_CLK, OUTPUT); while ( 1 ) { digitalWrite(IIC_CLK, ! digitalRead(IIC_CLK)); delay(2); };
+  //  pinMode(IIC_DTA, OUTPUT); while ( 1 ) { digitalWrite(IIC_DTA, ! digitalRead(IIC_DTA)); delay(1); };
+  //  pinMode(IIC_CLK, OUTPUT); while ( 1 ) { digitalWrite(IIC_CLK, ! digitalRead(IIC_CLK)); delay(2); };
 
-//  serialPerfTest();
+  //  serialPerfTest();
 
   brzo_i2c_setup(IIC_DTA, IIC_CLK, IIC_STRETCH);
-  
-  Serial << F("RGB Panel Controller") << endl << endl;
-//  Serial1 << F("RGB\n");
 
-  Serial << F("Setup...") << endl;
-  
-//  pinMode(13, OUTPUT);
-  
+  Serial << F("RGB Setup") << endl;
+
+  //  pinMode(13, OUTPUT);
+
   // Init PCA
   Serial << F("Init Panel...") << endl;
   initPanel();
-  
+
   // Init RGB Structures
   Serial << F("RGB Structures...") << endl;
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
@@ -351,7 +350,7 @@ void setupRgb()
 #if 1
   init_func = &allOn_Init;
   step_func = &allOn_Step;
-  
+
   cycleMode = cycleModeOld = allOn;
   newCycleModeSelected = true;
   seedValue = 0;
@@ -359,7 +358,7 @@ void setupRgb()
   pwm_oe = 0;
 #endif
 
-#if 0   // Init parameters from EEPROM
+#if 0 // Init parameters from EEPROM
   //
   // Initialize some parameters with previously persisted values from EEPROM
   //
@@ -405,20 +404,19 @@ void setupRgb()
   
   doBeep = EEPROM.read(EEPROM_ADDR_DOBEEP);
   Serial << F("doBeep: ") << doBeep << ".\n";
-  
+
 #endif
 
   Serial << F("PWM /OE...\n");
-//  analogWrite(PWM_OE_PIN, pwm_oe);
+  //  analogWrite(PWM_OE_PIN, pwm_oe);
 
   // Buzzer
   Serial << F("Buzzer...\n");
-//  pinMode(BUZZER, OUTPUT);
-//  digitalWrite(BUZZER, BUZZER_OFF);
+  //  pinMode(BUZZER, OUTPUT);
+  //  digitalWrite(BUZZER, BUZZER_OFF);
   beep(50, 50, 50, 0);
-  
-  Serial << F("Setup done...\n\n");
-  Serial << F("Start loop...\n");
+
+  Serial << F("RGB setup done...\n\n");
 } // setup
 
 /**********************************************************************
@@ -428,22 +426,22 @@ void setupRgb()
 **********************************************************************/
 void loopRgb()
 {
-//  uint32_t loopStartUS = micros();
-  
-//  digitalWriteFast(13, ! digitalReadFast(13));
-  
-//  Serial << loopStartUS << '\n';
-//  Serial << F("FreeRAM: ") << freeRam() << '\n';
-//  Serial << F("CycleMode: ") << cycleMode << '\n';
+  //  uint32_t loopStartUS = micros();
 
-//  Serial1 << '.';
+  //  digitalWriteFast(13, ! digitalReadFast(13));
 
-  if (! newCommandAvail && Serial.available())
+  //  Serial << loopStartUS << '\n';
+  //  Serial << F("FreeRAM: ") << freeRam() << '\n';
+  //  Serial << F("CycleMode: ") << cycleMode << '\n';
+
+  //  Serial1 << '.';
+
+  if (!newCommandAvail && Serial.available())
   {
     newCommand = Serial.read();
     if (newCommand != '\n' && newCommand != '\r')
     {
-      Serial << F("Serial.Read: ") << (char) newCommand << '\n';
+      Serial << F("Serial.Read: ") << (char)newCommand << '\n';
 
       newCommandAvail = true;
     }
@@ -465,32 +463,35 @@ void loopRgb()
     newCommandAvail = false;
   }
 
-//  if (loopCount > 1200) return;
+  //  if (loopCount > 1200) return;
 
   if (newCycleModeSelected)
   {
     // Initialize new cycle mode first
     (*init_func)();
     newCycleModeSelected = false;
-  } else {
+  }
+  else
+  {
     // Execute step function of currently selected mode
     (*step_func)();
   }
 
   if (stepDelay)
   {
-    // Handle millis wrap around 
+    // Handle millis wrap around
     // ### really necessary? I don't think so.
     // Happens every 49d 17h 02m 47,295 - so what ...
-//    if (millis() < lastStepTS)
-//      lastStepTS = 0;
-  
+    //    if (millis() < lastStepTS)
+    //      lastStepTS = 0;
+
     uint32_t next_ts = lastStepTS + stepDelay;
-    
+
     // Did the calculation last longer than we intended to wait?
     if (next_ts > millis())
     { // No, so wait till delay is over
-      while (next_ts > millis());
+      while (next_ts > millis())
+        ;
       lastStepTS += stepDelay;
     }
     else
@@ -501,9 +502,9 @@ void loopRgb()
   // Execute update
   updatePanel();
 
-//  uint32_t loopStopUS = micros();
-//  Serial << F("Loop duration[") << loopCount << F("]: ") << loopStopUS - loopStartUS << '\n';
-//  loopCount ++;
+  //  uint32_t loopStopUS = micros();
+  //  Serial << F("Loop duration[") << loopCount << F("]: ") << loopStopUS - loopStartUS << '\n';
+  //  loopCount ++;
 } // loop
 
 /**********************************************************************
@@ -521,9 +522,148 @@ void putNewCommand(char c)
   }
   newCommand = c;
   newCommandAvail = true;
-  
+
   return;
 } // putNewCommand
+
+/*
+
+MQTT & Serial command execution
+
+Select mode
+  last, this, next
+Select speed
+  dec, abs, inc
+Select brightness
+  dec, abs, inc
+Stop/Resume
+Config beep
+
+VarArgs?
+
+String?
+
+Dedicated methods?
+
+Forward JSON string?
+
+-> Execute command
+
+*/
+
+void enableRGB(bool state)
+{
+  return;
+}
+
+void setModeRGB(uint8_t mode)
+{
+
+  newCycleModeSelected = true;
+
+  return;
+}
+
+void persistBrightness()
+{
+  EEPROM.write(EEPROM_ADDR_BRIGHT, pwm_oe);
+  EEPROM.commit();
+}
+
+void setAbsoluteBrightnessRGB(uint8_t value)
+{
+
+  pwm_oe = value;
+
+  Serial << F("Set absolute PWM_OE to ") << pwm_oe << endl;
+
+  persistBrightness();
+
+  return;
+}
+
+void setRelativeBrightnessRGB(int16_t value)
+{
+
+  int16_t tmp = pwm_oe + value;
+
+  if (tmp < 0)
+    tmp = 0;
+  if (tmp > 255)
+    tmp = 255;
+
+  Serial << F("Set relative PWM_OE to ") << pwm_oe << endl;
+
+  persistBrightness();
+
+  return;
+}
+
+void persistStepDelay()
+{
+  EEPROM.write(EEPROM_ADDR_SPEED, ((uint8_t *)(&stepDelay))[0]);
+  EEPROM.write(EEPROM_ADDR_SPEED + 1, ((uint8_t *)(&stepDelay))[1]);
+  EEPROM.commit();
+}
+
+void setAbsoluteSpeedRGB(uint8_t value)
+{
+
+  stepDelay = value;
+
+  Serial << F("Set absolute stepDelay to ") << stepDelay << endl;
+
+  persistStepDelay();
+
+  return;
+}
+
+void setRelativeSpeedRGB(int16_t value)
+{
+
+  int16_t tmp = stepDelay + value;
+
+  if (tmp < 0)
+    tmp = 0;
+  if (tmp > 255)
+    tmp = 255;
+
+  Serial << F("Set relative stepDelay to ") << stepDelay << endl;
+
+  persistStepDelay();
+
+  return;
+}
+
+void persistBeep()
+{
+  EEPROM.write(EEPROM_ADDR_DOBEEP, doBeep);
+  EEPROM.commit();
+}
+
+void enableBeepRGB()
+{
+
+  doBeep = 1;
+
+  Serial << F("Set doBeep to ") << doBeep << endl;
+
+  persistBeep();
+
+  return;
+}
+
+void disableBeepRGB()
+{
+
+  doBeep = 0;
+
+  Serial << F("Set doBeep to ") << doBeep << endl;
+
+  persistBeep();
+
+  return;
+}
 
 /**********************************************************************
   processSerialInput
@@ -561,19 +701,19 @@ void putNewCommand(char c)
 uint8_t processSerialInput(char c)
 {
   Serial << F("processInput: '") << c << "' " << endl;
-  Serial.print((uint8_t) c, HEX);
+  Serial.print((uint8_t)c, HEX);
   Serial.println('.');
-  
-  uint8_t res = 1;  // assume we have got a valid code
-  
+
+  uint8_t res = 1; // assume we have got a valid code
+
   Serial << F("Selected mode:") << endl;
   switch (c)
   {
   // Cycle Mode changes
-  case '0': 
+  case '0':
     setCycleMode(allOff);
     break;
-  case '1': 
+  case '1':
     setCycleMode(allOn);
     break;
   case '2':
@@ -585,16 +725,16 @@ uint8_t processSerialInput(char c)
   case '4':
     setCycleMode(blue);
     break;
-  case '5': 
+  case '5':
     setCycleMode(uniform);
     break;
   case '6':
     setCycleMode(cloud);
-    break;      
+    break;
   case '7':
     setCycleMode(wave);
-    break;      
-/*  case '8':
+    break;
+    /*  case '8':
     setCycleMode(allOff);
     break;
   case '9':
@@ -603,13 +743,15 @@ uint8_t processSerialInput(char c)
 */
   case 'd': // dump/debug ...
     setCycleMode(debug);
-    break; 
+    break;
 
-  case '!':       // onHold ### new variable
+  case '!': // onHold ### new variable
     if (cycleMode == noChange)
     {
       cycleMode = cycleModeOld;
-    } else {
+    }
+    else
+    {
       cycleModeOld = cycleMode;
       cycleMode = noChange;
     }
@@ -617,71 +759,33 @@ uint8_t processSerialInput(char c)
     break;
   // Execution control
   case 'b': // dim brightness
-    if (pwm_oe >= 10)
-      pwm_oe -= 10;
-    else
-      pwm_oe = 0;
-//    analogWrite(PWM_OE_PIN, pwm_oe);
-    Serial.print(F("Set PWM_OE to ")); Serial.println(pwm_oe);
-    // Persist to EEPROM for next restart
-    EEPROM.write(EEPROM_ADDR_BRIGHT, pwm_oe);
-    EEPROM.commit();
-    break; 
-  case 'B': 
-    if (pwm_oe <= 245)
-      pwm_oe += 10;
-    else
-      pwm_oe = 255;
-//    analogWrite(PWM_OE_PIN, pwm_oe);
-    Serial.print(F("Set PWM_OE to ")); Serial.println(pwm_oe);
-    // Persist to EEPROM for next restart
-    EEPROM.write(EEPROM_ADDR_BRIGHT, pwm_oe);
-    EEPROM.commit();
+    setRelativeBrightnessRGB(-10);
+    break;
+  case 'B':
+    setRelativeBrightnessRGB(10);
     break;
   case 's': // speed
-    if (stepDelay >= 1)
-      stepDelay--;
-    else
-      stepDelay = 0;
-    Serial.print(F("Set stepDelay to ")); Serial.println(stepDelay);
-    // Persist to EEPROM for next restart
-    EEPROM.write(EEPROM_ADDR_SPEED,     ((uint8_t *)(&stepDelay))[0]);
-    EEPROM.write(EEPROM_ADDR_SPEED + 1, ((uint8_t *)(&stepDelay))[1]);
-    EEPROM.commit();
+    setRelativeSpeedRGB(-1);
     break;
   case 'S':
-    if (stepDelay <= 254)
-      stepDelay++;
-    else
-      stepDelay = 255;
-    Serial.print(F("Set stepDelay to ")); Serial.println(stepDelay);
-    // Persist to EEPROM for next restart
-    EEPROM.write(EEPROM_ADDR_SPEED,     ((uint8_t *)(&stepDelay))[0]);
-    EEPROM.write(EEPROM_ADDR_SPEED + 1, ((uint8_t *)(&stepDelay))[1]);
-    EEPROM.commit();
+    setRelativeSpeedRGB(1);
     break;
-  case 'g' :
-    doBeep = 1;
-    Serial.print(F("Set doBeep to ")); Serial.println(doBeep);
-    EEPROM.write(EEPROM_ADDR_DOBEEP, doBeep);
-    EEPROM.commit();
+  case 'g':
+    enableBeepRGB();
     break;
-  case 'G' :
-    doBeep = 0;
-    Serial.print(F("Set doBeep to ")); Serial.println(doBeep);
-    EEPROM.write(EEPROM_ADDR_DOBEEP, doBeep);
-    EEPROM.commit();
+  case 'G':
+    disableBeepRGB();
     break;
   case '@':
     Serial.print(F("INITIATE SOFTWARE RESET.\n"));
-    
+
     doSoftwareReset();
     break;
   case 'e':
-    dumpEEPROM(0, 16);      // from, count
+    dumpEEPROM(0, 16); // from, count
     break;
   case 'E':
-    initEEPROM(0, 0, 16);   // value, from, count
+    initEEPROM(0, 0, 16); // value, from, count
     break;
   case '?':
     dumpHelp();
@@ -691,39 +795,38 @@ uint8_t processSerialInput(char c)
     res = 0;
     break;
   }
-  
+
   Serial << F("processSerialInput: done.") << endl;
-  
+
   if (res)
     beep(50, 50, 50, 0, 0);
   else
     beep(100, 50, 100, 0, 0);
-  
+
   return res;
 } // processSerialInput
 
 void dumpHelp()
 {
   Serial << F(
-    "0 All OFF\n"
-    "1 All ON\n"
-    "2 Red\n"
-    "3 Green\n"
-    "4 Blue\n"
-    "5 Uniform\n"
-    "6 Cloud\n"
-    "7 Wave\n"
-    "b Increase Brightness\n"
-    "B Decrease Brightness\n"
-    "s Decrease Step Delay\n"
-    "S Increase Step Delay\n"
-    "g Enable Beep\n"
-    "G Disable Beep\n"
-    "@ Software Reset\n"
-    "e Dump EEPROM\n"
-    "E Reinit EEPROM\n"
-    "? This help\n"
-  );
+      "0 All OFF\n"
+      "1 All ON\n"
+      "2 Red\n"
+      "3 Green\n"
+      "4 Blue\n"
+      "5 Uniform\n"
+      "6 Cloud\n"
+      "7 Wave\n"
+      "b Increase Brightness\n"
+      "B Decrease Brightness\n"
+      "s Decrease Step Delay\n"
+      "S Increase Step Delay\n"
+      "g Enable Beep\n"
+      "G Disable Beep\n"
+      "@ Software Reset\n"
+      "e Dump EEPROM\n"
+      "E Reinit EEPROM\n"
+      "? This help\n");
 } // dumpHelp
 
 /*---------------------------------------------------------------------
@@ -740,12 +843,12 @@ uint8_t setCycleMode(cycleMode_t cm)
 {
   switch (cm)
   {
-  case allOff: 
+  case allOff:
     init_func = &allOff_Init;
     step_func = &allOff_Step;
     Serial.println(F("allOff"));
     break;
-  case allOn: 
+  case allOn:
     init_func = &allOn_Init;
     step_func = &allOn_Step;
     Serial.println(F("allOn"));
@@ -765,7 +868,7 @@ uint8_t setCycleMode(cycleMode_t cm)
     step_func = &dummy_Step;
     Serial.println(F("blue"));
     break;
-  case uniform: 
+  case uniform:
     init_func = &uniform_Init;
     step_func = &uniform_Step;
     Serial.println(F("uniform"));
@@ -774,14 +877,14 @@ uint8_t setCycleMode(cycleMode_t cm)
     init_func = &cloud_Init;
     step_func = &cloud_Step;
     Serial.println(F("cloud"));
-    break;      
+    break;
   case wave:
     init_func = &wave_Init;
     step_func = &wave_Step;
     Serial.println(F("wave"));
-    break;      
-//  case '8': break;
-//  case '9': break;
+    break;
+    //  case '8': break;
+    //  case '9': break;
   case debug:
     init_func = &debug_Init;
     step_func = &debug_Step;
@@ -795,9 +898,9 @@ uint8_t setCycleMode(cycleMode_t cm)
   }
 
   // We have a valid new cycle mode
-  newCycleModeSelected = true;  // Initialize in loop on next pass
-  cycleMode = cm;         // Store new cycle mode
-  
+  newCycleModeSelected = true; // Initialize in loop on next pass
+  cycleMode = cm;              // Store new cycle mode
+
   // Persist new cycleMode to EEPROM
   EEPROM.write(EEPROM_ADDR_CYCLEMODE, cycleMode);
   EEPROM.commit();
@@ -808,36 +911,36 @@ uint8_t setCycleMode(cycleMode_t cm)
 void dump_structures(void)
 {
   char buff[64];
-  
+
   Serial.println(F("----------"));
   snprintf(buff, sizeof(buff), "Loop Count: %u\n", loopCount);
   Serial.print(buff);
-  
+
   snprintf(buff, sizeof(buff), "MaxSteps: %u CountSteps: %u\n", countMaxSteps, countSteps);
-  Serial.print(buff); 
-  
+  Serial.print(buff);
+
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
     snprintf(buff, sizeof(buff), "strip[%u]: %g %g %g\n", i, strip[i].h, strip[i].s, strip[i].v);
-    Serial.print(buff);   
+    Serial.print(buff);
   }
 
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
     snprintf(buff, sizeof(buff), "hsvDelta[%u]: %g %g %g\n", i, hsvDelta[i].h, hsvDelta[i].s, hsvDelta[i].v);
-    Serial.print(buff);   
+    Serial.print(buff);
   }
 
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
     snprintf(buff, sizeof(buff), "pca_rgb.rgb[%u]: %u %u %u\n", i, pca_rgb.rgb[i].r, pca_rgb.rgb[i].g, pca_rgb.rgb[i].b);
-    Serial.print(buff);   
+    Serial.print(buff);
   }
 
   Serial.println(F("----------"));
 } // dump_structures
 
-#if 1   // dummy, allOff, allOn color cycles
+#if 1 // dummy, allOff, allOn color cycles
 /*---------------------------------------------------------------------
   dummy
   
@@ -856,7 +959,7 @@ void allOff_Init(void)
 {
   // set RGB values to 0 here or better use the PCA native ALL_OFF flags?
   // Will result in black color :-)
-  
+
   uni_Init(0, 0, 0);
 }
 
@@ -867,18 +970,18 @@ void allOff_Step(void) {}
   
   Turn on all led strips
 ---------------------------------------------------------------------*/
-void allOn_Init(void) 
+void allOn_Init(void)
 {
   // set RGB values to 4095 here or better use the PCA native ALL_ON flags?
   // Will result in white color :-)
-  
+
   uni_Init(4095, 4095, 4095);
 }
 
 void allOn_Step(void) {}
 #endif
 
-#if 1   // uni colour cycle
+#if 1 // uni colour cycle
 /*---------------------------------------------------------------------
   Uni colour cycle
 
@@ -911,7 +1014,7 @@ void blue_Init(void)
 }
 #endif
 
-#if 1   // debug colour cycle
+#if 1 // debug colour cycle
 /*---------------------------------------------------------------------
   Debug colour cycle
 
@@ -920,9 +1023,9 @@ void blue_Init(void)
 void debug_Init(void)
 {
   uni_Init(0, 0, 0);
-  
-//  uint8_t strip = 0;
-//  uint8_t color = 0;
+
+  //  uint8_t strip = 0;
+  //  uint8_t color = 0;
 } // debug_Init
 
 void debug_Step(void)
@@ -970,11 +1073,11 @@ void debug_Step(void)
   default:
     break;
   }
-  
+
 } // debug_Step
 #endif
 
-#if 1   // wave colour cycle
+#if 1 // wave colour cycle
 /*---------------------------------------------------------------------
   Wave colour cycle
   
@@ -984,13 +1087,12 @@ void wave_Init(void)
   // Initialize strips
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
-    strip[i].h = ((double) i) * 0.01;
-    strip[i].s = 1; 
+    strip[i].h = ((double)i) * 0.01;
+    strip[i].s = 1;
     strip[i].v = 1;
-    
-    hsv2pca(strip[i].h, strip[i].s, strip[i].v, 
-      &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
 
+    hsv2pca(strip[i].h, strip[i].s, strip[i].v,
+            &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
   }
 } // wave_Init
 
@@ -1003,16 +1105,16 @@ void wave_Step(void)
     while (strip[i].h > 1.0)
       strip[i].h -= 1.0;
 
-    strip[i].s = 1; 
+    strip[i].s = 1;
     strip[i].v = 1;
 
-    hsv2pca(strip[i].h, strip[i].s, strip[i].v, 
-      &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
+    hsv2pca(strip[i].h, strip[i].s, strip[i].v,
+            &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
   }
 } // wave_Step
 #endif
 
-#if 1   // uniform colour cycle
+#if 1 // uniform colour cycle
 /*---------------------------------------------------------------------
   uniform colour cycle
 
@@ -1030,30 +1132,30 @@ void uniform_Init(void)
 
 void uniform_Step(void)
 {
-//  double d;
+  //  double d;
   // Calculate next step
 
   // First strip is reference
   // Advance in color
   strip[0].h += 0.001;
-  
+
   while (strip[0].h > 1.0)
     strip[0].h -= 1.0;
-//    strip[0].h = modf(strip[0].h, &d);
+  //    strip[0].h = modf(strip[0].h, &d);
 
   while (strip[0].h < 0)
     strip[0].h += 1;
 
   // Calculate RGB
-  hsv2pca(strip[0].h, strip[0].s, strip[0].v, 
-    &pca_rgb.rgb[0].r, &pca_rgb.rgb[0].g, &pca_rgb.rgb[0].b);
+  hsv2pca(strip[0].h, strip[0].s, strip[0].v,
+          &pca_rgb.rgb[0].r, &pca_rgb.rgb[0].g, &pca_rgb.rgb[0].b);
 
   // Populate RGB
   uni_Init(pca_rgb.rgb[0].r, pca_rgb.rgb[0].g, pca_rgb.rgb[0].b);
 } // uniform_Step
 #endif
 
-#if 1   // cloud colour cycle
+#if 1 // cloud colour cycle
 /*---------------------------------------------------------------------
   Cloud colour cycle
 
@@ -1081,37 +1183,34 @@ void cloud_Init(void)
 
   s0 = 0.0;
   sn = 0.0;
-  
+
   // Calculate interval size between strips
-  double sd = (sn - s0) * (1.0 / (double) (MAX_STRIPS - 1));
+  double sd = (sn - s0) * (1.0 / (double)(MAX_STRIPS - 1));
 
 #if 1
   DBG_INIT(40)
-//  "Initial s0=%g sn=%g, sd=%g", s0, sn, sd
-  "Initial s0=%f sn=%f, sd=%f", s0, sn, sd
-  DBG_DONE
+  //  "Initial s0=%g sn=%g, sd=%g", s0, sn, sd
+  "Initial s0=%f sn=%f, sd=%f", s0, sn, sd DBG_DONE
 #endif
 
-  // Initialize strips
-  for (uint8_t i = 0; i < MAX_STRIPS; i++)
+      // Initialize strips
+      for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
-    strip[i].h = s0 + sd * (double) i;
-//    sx = s0 + sd * (double) i;
-//    strip[i].h = sx;
-    strip[i].s = 1; 
+    strip[i].h = s0 + sd * (double)i;
+    //    sx = s0 + sd * (double) i;
+    //    strip[i].h = sx;
+    strip[i].s = 1;
     strip[i].v = 1;
 
 #if 1
     DBG_INIT(24)
-    "strip[%d] = %g", i, strip[i].h
-    DBG_DONE
-#endif  
+    "strip[%d] = %g", i, strip[i].h DBG_DONE
+#endif
 
-    hsv2pca(strip[i].h, strip[i].s, strip[i].v, 
-      &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
+                             hsv2pca(strip[i].h, strip[i].s, strip[i].v, &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
   }
-  
-  countSteps = 0;   // Next step is to recalculate new delta and step values
+
+  countSteps = 0; // Next step is to recalculate new delta and step values
   Serial << F("cloud_init...done") << endl;
 } // cloud_init
 
@@ -1122,15 +1221,15 @@ void cloud_Step(void)
     DBG_INIT(24)
     "cloud_step[%d|%d]...", countSteps, countMaxSteps
     DBG_DONE
-#endif  
-  
+#endif
+
   if (countSteps <= 0)
   {
-//    digitalWriteFast(13, HIGH);
+    //    digitalWriteFast(13, HIGH);
     digitalWrite(13, HIGH);
     cloud_ReInit();
     delay(1000);
-//    digitalWriteFast(13, LOW);
+    //    digitalWriteFast(13, LOW);
     digitalWrite(13, HIGH);
     return;
   }
@@ -1139,21 +1238,21 @@ void cloud_Step(void)
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
     strip[i].h += hsvDelta[i].h;
-    
+
     // Handle over- and underrun of hue
     if (strip[i].h > 1)
       strip[i].h -= 1;
     if (strip[i].h < 0)
       strip[i].h += 1;
 
-//    Serial.print(strip[i].h, 6); Serial.print(F(" "));
+    //    Serial.print(strip[i].h, 6); Serial.print(F(" "));
 
     // Calculate RGB
-    hsv2pca(strip[i].h, strip[i].s, strip[i].v, 
-      &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
+    hsv2pca(strip[i].h, strip[i].s, strip[i].v,
+            &pca_rgb.rgb[i].r, &pca_rgb.rgb[i].g, &pca_rgb.rgb[i].b);
   }
 
-//  Serial.println();
+  //  Serial.println();
 
   countSteps--;
   return;
@@ -1162,26 +1261,25 @@ void cloud_Step(void)
 void cloud_ReInit(void)
 {
   Serial << F("cloud_ReInit...") << millis() << endl;
-  
+
   double s0, sn;
-  
+
   // Calculate new targets
   // ### need to take care that targets do not differ too much?
-//  s0 = random(100) / 100.0;
-//  sn = random(100) / 100.0;
+  //  s0 = random(100) / 100.0;
+  //  sn = random(100) / 100.0;
 
   // Make distance large enough. One color has ~ 100/6 = 16.6
   // Make distance not too large so it spreads nice across MAX_STRIPS
   s0 = random(100) / 100.0;
-  sn = s0 + (random(25, 75) / 100.0) * ( (random(0, 2) == 0) ? 1.0 : -1.0);
+  sn = s0 + (random(25, 75) / 100.0) * ((random(0, 2) == 0) ? 1.0 : -1.0);
 
-//  s0 = strip[MAX_STRIPS - 1].h; // Start where we left off
-//  sn = s0 + 1.0 / 6.0;      // Advance one color
+  //  s0 = strip[MAX_STRIPS - 1].h; // Start where we left off
+  //  sn = s0 + 1.0 / 6.0;      // Advance one color
 
-//  s0 = strip[MAX_STRIPS - 1].h; // Start where we left off
-//  s0 += 1.0 / 6.0;
-//  sn = s0 + 1.0 / 6.0;      // Advance one color
-
+  //  s0 = strip[MAX_STRIPS - 1].h; // Start where we left off
+  //  s0 += 1.0 / 6.0;
+  //  sn = s0 + 1.0 / 6.0;      // Advance one color
 
   // Rebound sx to [0, 1)
   if (s0 >= 1.0)
@@ -1193,27 +1291,30 @@ void cloud_ReInit(void)
     sn -= 1.0;
   if (sn < 0.0)
     sn += 1.0;
-  
+
   // Calculate interval between first and last strip
-  double sd = (sn - s0); 
+  double sd = (sn - s0);
   // Take the shorter way in color circle
   if (sd > 0.5)
-    sd = - (1.0 - sd);
+    sd = -(1.0 - sd);
   if (sd < -0.5)
     sd = 1.0 + sd;
   // Delta from one strip to the next
-  sd *= (1.0 / (double) (MAX_STRIPS - 1));
+  sd *= (1.0 / (double)(MAX_STRIPS - 1));
 
 #if 1
-//  DBG_INIT(45)
-//  "New s0=%f sn=%f, sd=%f", s0, sn, sd
-//  DBG_DONE
+  //  DBG_INIT(45)
+  //  "New s0=%f sn=%f, sd=%f", s0, sn, sd
+  //  DBG_DONE
 
-  Serial << F("New s0="); Serial.print(s0, 8);
-  Serial << F(" sn="); Serial.print(sn, 8);
-  Serial << F(" sd="); Serial.print(sd, 8);
+  Serial << F("New s0=");
+  Serial.print(s0, 8);
+  Serial << F(" sn=");
+  Serial.print(sn, 8);
+  Serial << F(" sd=");
+  Serial.print(sd, 8);
   Serial << '\n';
-#endif  
+#endif
 
   // Calculate steps to reach till new target
   // ### need to take care that enough steps for large target diffs?
@@ -1222,37 +1323,39 @@ void cloud_ReInit(void)
 #if 1
   DBG_INIT(20)
   "countMaxSteps=%d", countMaxSteps
-  DBG_DONE
-#endif  
-  
-  // Next cycle goes from strip[i].h to s0 + sd * i in countMaxSteps steps
-  for (uint8_t i = 0; i < MAX_STRIPS; i++)
+                          DBG_DONE
+#endif
+
+      // Next cycle goes from strip[i].h to s0 + sd * i in countMaxSteps steps
+      for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
     double from = strip[i].h;
-    double to = s0 + sd * (double) i;
-    double diff = (to - from) / (double) (countMaxSteps);
+    double to = s0 + sd * (double)i;
+    double diff = (to - from) / (double)(countMaxSteps);
 
     hsvDelta[i].h = diff;
     hsvDelta[i].s = 0;
     hsvDelta[i].v = 0;
 
 #if 1
-//    DBG_INIT(55)
-//    "strip[%d]=%f to=%f diff=%f", i, strip[i].h, to, diff
-//    DBG_DONE
+    //    DBG_INIT(55)
+    //    "strip[%d]=%f to=%f diff=%f", i, strip[i].h, to, diff
+    //    DBG_DONE
 
-    Serial << F("strip[") << i << F("]="); Serial.print(strip[i].h, 8);
-    Serial << F(" to="); Serial.print(to, 8);
-    Serial << F(" diff="); Serial.print(diff, 8);
+    Serial << F("strip[") << i << F("]=");
+    Serial.print(strip[i].h, 8);
+    Serial << F(" to=");
+    Serial.print(to, 8);
+    Serial << F(" diff=");
+    Serial.print(diff, 8);
     Serial << '\n';
-#endif  
-
+#endif
   }
   Serial.println(F("cloud_ReInit...done"));
 } // cloud_ReInit
 #endif
 
-#if 1   // Panel related routines
+#if 1 // Panel related routines
 /**********************************************************************
   Panel related functions
 **********************************************************************/
@@ -1265,24 +1368,25 @@ void cloud_ReInit(void)
 void updatePanel(void)
 {
 
-//  dump_structures();
-//  return;
+  //  dump_structures();
+  //  return;
 
   uint8_t channels = MAX_STRIPS * 3;
   uint8_t chip = PCA_BASE_ADDRESS;
-  
+
   // Each PCA has 16 channels. We only use 15 at most (R, G, B)
   // Every Strip requires 3 channels (RGB), so we have at most 5 strips per PCA
 
   for (uint8_t i = 0; i < MAX_STRIPS * 3; i += 15, chip += 2)
   {
-    pca_rgb_update(&pca_rgb.a[i], chip, min(channels, (uint8_t) 15));
-    
-    if (channels > 15) channels -= 15;
+    pca_rgb_update(&pca_rgb.a[i], chip, min(channels, (uint8_t)15));
+
+    if (channels > 15)
+      channels -= 15;
   }
-  
+
   // IIC Stop here to update all PCAs on STOP?
-  // Night Require restart in update function!
+  // Might require restart in update function!
 }
 
 /*---------------------------------------------------------------------
@@ -1294,12 +1398,18 @@ void initPanel(void)
 {
   uint8_t buff[1];
   uint8_t b = 0;
-  
+
+  if (stubPCA)
+  {
+    Serial << F("WARNING: initPanel: PCA is stubbed.") << endl;
+    return;
+  }
+
   // Reset IIC bus
   Serial << F("initPanel: Reset IIC.") << endl;
-//  iic.start(0x00 | I2C_WRITE);
-//  iic.write(0x06);
-//  iic.stop();
+  //  iic.start(0x00 | I2C_WRITE);
+  //  iic.write(0x06);
+  //  iic.stop();
 
   buff[b++] = 0x06;
 
@@ -1311,13 +1421,13 @@ void initPanel(void)
   for (uint8_t addr = PCA_BASE_ADDRESS; addr <= PCA_LAST_ADDRESS; addr += 2)
   {
     // Init PCAs to default values
-//    Serial << F("initPanel: init PCA9685 at ") << _HEX(addr) << ':' << addr << '\n';
+    //    Serial << F("initPanel: init PCA9685 at ") << _HEX(addr) << ':' << addr << '\n';
     pca_init(addr);
   }
 } // initPanel
 #endif
 
-#if 1   // PCA low level routines
+#if 1 // PCA low level routines
 /**********************************************************************
   PCA9685
   
@@ -1333,16 +1443,22 @@ bool pca_init(uint8_t addr)
   uint8_t buff[3];
   uint8_t b = 0;
 
-  Serial << F("pca_init[") << _HEX(addr) << F("]...");
-//  return true;
+  if (stubPCA)
+  {
+    Serial << F("WARNING: pca_init: PCA is stubbed.") << endl;
+    return true;
+  }
 
-//  ABORT_UNLESS(iic.start(addr | I2C_WRITE));
-//  brzo_i2c_start_transaction(addr, IIC_FREQ);
+  Serial << F("pca_init[") << _HEX(addr) << F("]...");
+  //  return true;
+
+  //  ABORT_UNLESS(iic.start(addr | I2C_WRITE));
+  //  brzo_i2c_start_transaction(addr, IIC_FREQ);
 
   // Select Mode 1 register
-//  ABORT_UNLESS(iic.write(0));
+  //  ABORT_UNLESS(iic.write(0));
   buff[b++] = 0;
-//  brzo_i2c_write(buff, 1, false);
+  //  brzo_i2c_write(buff, 1, false);
 
   /*
     Mode 1 register
@@ -1357,9 +1473,9 @@ bool pca_init(uint8_t addr)
     
     0 0 1 0 . 0 0 0 1
   */
-//  ABORT_UNLESS(iic.write(0x21));
+  //  ABORT_UNLESS(iic.write(0x21));
   buff[b++] = 0x21;
-//  brzo_i2c_write(buff, 1, false);
+  //  brzo_i2c_write(buff, 1, false);
 
   /*
     Mode 2 register
@@ -1374,7 +1490,7 @@ bool pca_init(uint8_t addr)
 
     0 0 0 0 . 0 1 0 0
   */
-//  ABORT_UNLESS(iic.write(0x04));
+  //  ABORT_UNLESS(iic.write(0x04));
   buff[b++] = 0x04;
 
   Serial << F("pca_init(): count buff elements: ") << b << "/" << sizeof(buff) << endl;
@@ -1382,18 +1498,18 @@ bool pca_init(uint8_t addr)
   brzo_i2c_start_transaction(addr, IIC_FREQ);
   brzo_i2c_write(buff, b, false);
 
-//  iic.stop();
-//  ABORT_UNLESS(res = brzo_i2c_end_transaction());
+  //  iic.stop();
+  //  ABORT_UNLESS(res = brzo_i2c_end_transaction());
   uint8_t res = brzo_i2c_end_transaction();
   Serial << res << F("... done.") << endl;
   return (res == 0);
 
-// ABORT:
+  // ABORT:
   // Do some magic here
-//  iic.stop();
-//  Serial << F("pca_init: IIC ERROR on line: ") << _ABORT_LINE << endl;
-//  Serial << F("pca_init: IIC ERROR on line: ") << _ABORT_LINE << endl;
-//  return false;
+  //  iic.stop();
+  //  Serial << F("pca_init: IIC ERROR on line: ") << _ABORT_LINE << endl;
+  //  Serial << F("pca_init: IIC ERROR on line: ") << _ABORT_LINE << endl;
+  //  return false;
 } // pca_init
 
 /*---------------------------------------------------------------------
@@ -1408,29 +1524,29 @@ void pca_rgb_update(uint16_t *arr, uint8_t chip, uint8_t count)
   DBG_INIT(32)
   "pca_rgb_update(arr, %X, %d):", chip, count
   DBG_DONE
-#endif  
+#endif
 
-  uint8_t buff[62];
+  uint8_t buff[62]; // why 62?
   uint8_t b = 0;
-  
-//  ABORT_UNLESS(iic.start(chip | I2C_WRITE));  // Start communication, select chip
-//  brzo_i2c_start_transaction(chip, IIC_FREQ);
 
-//  ABORT_UNLESS(iic.write(0x06));        // select 1st PWM register
-/*  { 
+  //  ABORT_UNLESS(iic.start(chip | I2C_WRITE));  // Start communication, select chip
+  //  brzo_i2c_start_transaction(chip, IIC_FREQ);
+
+  //  ABORT_UNLESS(iic.write(0x06));        // select 1st PWM register
+  /*  { 
     uint8_t reg = 0x06;
     brzo_i2c_write(&reg, 1, false);
   }
 */
-  buff[b++] = 0x06;
+  buff[b++] = 0x06; // select 1st PWM register
 
   // Update all PWM registers
   for (uint8_t i = 0; i < count; i++)
   {
-//    uint16_t on = i * 1;
+    //    uint16_t on = i * 1;
     uint16_t on = 0;
     uint16_t off = arr[i] + on;
-    
+
     uint8_t on_l = on & 0xFF;
     uint8_t on_h = (on >> 8) & 0x0F;
 
@@ -1446,42 +1562,50 @@ void pca_rgb_update(uint16_t *arr, uint8_t chip, uint8_t count)
     DBG_DONE
 #endif
     // LED on LOW
-//    ABORT_UNLESS(iic.write(on_l));
-//    brzo_i2c_write(&on_l, 1, false);
+    //    ABORT_UNLESS(iic.write(on_l));
+    //    brzo_i2c_write(&on_l, 1, false);
     // LED on HIGH
-//    ABORT_UNLESS(iic.write(on_h));
-//    brzo_i2c_write(&on_h, 1, false);
+    //    ABORT_UNLESS(iic.write(on_h));
+    //    brzo_i2c_write(&on_h, 1, false);
     // LED off LOW
-//    ABORT_UNLESS(iic.write(off_l));
-//    brzo_i2c_write(&off_l, 1, false);
+    //    ABORT_UNLESS(iic.write(off_l));
+    //    brzo_i2c_write(&off_l, 1, false);
     // LED off HIGH (4 bits)
-//    ABORT_UNLESS(iic.write(off_h));
-//    brzo_i2c_write(&off_h, 1, false);
+    //    ABORT_UNLESS(iic.write(off_h));
+    //    brzo_i2c_write(&off_h, 1, false);
     buff[b++] = on_l;
     buff[b++] = on_h;
     buff[b++] = off_l;
     buff[b++] = off_h;
   }
 
-//  Serial << F("pca_rgb_update(): count buff elements: ") << b << "/" << sizeof(buff) << endl;
+  //  Serial << F("pca_rgb_update(): count buff elements: ") << b << "/" << sizeof(buff) << endl;
 
-  brzo_i2c_start_transaction(chip, IIC_FREQ);
-  brzo_i2c_write(buff, b, false);
-
-  uint8_t res = brzo_i2c_end_transaction();
-  if ( res )
+  if (stubPCA)
   {
-    Serial << F("pca_rgb_update(): IIC error code: ") << res << endl;
+    Serial << F("WARNING: pca_rgb_update: PCA is stubbed.") << endl;
+    return;
   }
-  return;
+  else
+  {
+    brzo_i2c_start_transaction(chip, IIC_FREQ);
+    brzo_i2c_write(buff, b, false);
 
-//ABORT:
-//  Serial << F("pca_rgb_update: IIC ERROR on line: "); Serial.println(_ABORT_LINE);
-//  iic.stop();
+    uint8_t res = brzo_i2c_end_transaction();
+    if (res)
+    {
+      Serial << F("pca_rgb_update(): IIC error code: ") << res << endl;
+    }
+    return;
+  }
+
+  //ABORT:
+  //  Serial << F("pca_rgb_update: IIC ERROR on line: "); Serial.println(_ABORT_LINE);
+  //  iic.stop();
 } // pca_rgb_update
 #endif
 
-#if 1   // HSV, RGB, PCA colour conversion
+#if 1 // HSV, RGB, PCA colour conversion
 /**********************************************************************
   hsv2pca
   
@@ -1493,36 +1617,51 @@ void pca_rgb_update(uint16_t *arr, uint8_t chip, uint8_t count)
 **********************************************************************/
 void hsv2pca(double h, double s, double v, uint16_t *_r, uint16_t *_g, uint16_t *_b)
 {
-    double r = 0, g = 0, b = 0;
+  double r = 0, g = 0, b = 0;
 
-    int    i = int(h * 6);
-    double f = h * 6 - i;
-    double p = v * (1 - s);
-    double q = v * (1 - f * s);
-    double t = v * (1 - (1 - f) * s);
+  int i = int(h * 6);
+  double f = h * 6 - i;
+  double p = v * (1 - s);
+  double q = v * (1 - f * s);
+  double t = v * (1 - (1 - f) * s);
 
-    switch(i % 6){
-        case 0: r = v, g = t, b = p; break;
-        case 1: r = q, g = v, b = p; break;
-        case 2: r = p, g = v, b = t; break;
-        case 3: r = p, g = q, b = v; break;
-        case 4: r = t, g = p, b = v; break;
-        case 5: r = v, g = p, b = q; break;
-        default: r = g = b = 0; break;
-    }
+  switch (i % 6)
+  {
+  case 0:
+    r = v, g = t, b = p;
+    break;
+  case 1:
+    r = q, g = v, b = p;
+    break;
+  case 2:
+    r = p, g = v, b = t;
+    break;
+  case 3:
+    r = p, g = q, b = v;
+    break;
+  case 4:
+    r = t, g = p, b = v;
+    break;
+  case 5:
+    r = v, g = p, b = q;
+    break;
+  default:
+    r = g = b = 0;
+    break;
+  }
 
   // ranges from 0..4095
   // typecast works as truncate?
-    *_r = ((uint16_t)(r * 4095.0)) & 0x0FFF;
-//    *_g = ((uint16_t)(g * 4095.0)) & 0x0FFF;
-    *_g = ((uint16_t)(g * 1023.0)) & 0x0FFF;
-//    *_b = ((uint16_t)(b * 4095.0)) & 0x0FFF;
-    *_b = ((uint16_t)(b * 1023.0)) & 0x0FFF;
+  *_r = ((uint16_t)(r * 4095.0)) & 0x0FFF;
+  //    *_g = ((uint16_t)(g * 4095.0)) & 0x0FFF;
+  *_g = ((uint16_t)(g * 1023.0)) & 0x0FFF;
+  //    *_b = ((uint16_t)(b * 4095.0)) & 0x0FFF;
+  *_b = ((uint16_t)(b * 1023.0)) & 0x0FFF;
 } // hsv2pca
 
 #endif
 
-#if 1   // Buzzer beep
+#if 1 // Buzzer beep
 /**********************************************************************
   beep
   
@@ -1534,33 +1673,33 @@ void hsv2pca(double h, double s, double v, uint16_t *_r, uint16_t *_g, uint16_t 
 void beep(uint16_t firstArg, ...)
 //void beep(int firstArg, ...)
 {
-  return; 
-  
+  return;
+
   va_list argList;
   va_start(argList, firstArg);
 
-  if (! doBeep)
+  if (!doBeep)
     return;
-  
-//  uint16_t duration = firstArg;
-  uint16_t duration = (uint16_t) firstArg;
-  
-  digitalWrite(BUZZER, BUZZER_ON);    // Make some noise
-  do 
+
+  //  uint16_t duration = firstArg;
+  uint16_t duration = (uint16_t)firstArg;
+
+  digitalWrite(BUZZER, BUZZER_ON); // Make some noise
+  do
   {
-//      Serial << F("Buzzer delay[") << digitalRead(BUZZER) << F("]: ") << duration << "ms.\n";
-      delay(duration);        // Delay execution - make noise or silence
-      digitalWrite(BUZZER, ! digitalRead(BUZZER));
+    //      Serial << F("Buzzer delay[") << digitalRead(BUZZER) << F("]: ") << duration << "ms.\n";
+    delay(duration); // Delay execution - make noise or silence
+    digitalWrite(BUZZER, !digitalRead(BUZZER));
   }
-//  while (duration = va_arg(argList, uint16_t)); 
-  while (duration = (uint16_t) va_arg(argList, int)); 
-  digitalWrite(BUZZER, BUZZER_OFF);   // Be sure to turn off buzzer upon leave
-  
+  //  while (duration = va_arg(argList, uint16_t));
+  while (duration = (uint16_t)va_arg(argList, int));
+  digitalWrite(BUZZER, BUZZER_OFF); // Be sure to turn off buzzer upon leave
+
   va_end(argList);
 }
 #endif
 
-#if 1   // EEPROM related functions
+#if 1 // EEPROM related functions
 /*---------------------------------------------------------------------
   initEEPROM
   
@@ -1571,14 +1710,14 @@ void initEEPROM(uint8_t value, uint16_t from, uint16_t count)
   uint8_t i;
 
   Serial << F("initEEPROM with ") << value << F(" from ") << from << F(" to ") << from + count;
-  
+
   for (i = from; i < from + count; i++)
     EEPROM.write(i, value);
-    
+
   EEPROM.commit();
 
-  Serial << F(" ... done.\n");
-    
+  Serial << F(" ... done.") << endl;
+
 } // initEEPROM
 
 /*---------------------------------------------------------------------
@@ -1589,7 +1728,7 @@ void initEEPROM(uint8_t value, uint16_t from, uint16_t count)
 void dumpEEPROM(uint16_t from, uint16_t count)
 {
   char buff[16];
-  
+
   Serial << F("Dump EEPROM contents from ") << from << F(" to ") << from + count << '(' << count << F(")bytes\n");
   snprintf(buff, sizeof(buff), "%04d %03X: ", 0, 0);
   Serial << buff;
@@ -1601,13 +1740,13 @@ void dumpEEPROM(uint16_t from, uint16_t count)
     snprintf(buff, sizeof(buff), "%02X ", EEPROM.read(i));
     Serial << buff;
 
-    i++;  // advance here for the print below
+    i++; // advance here for the print below
 
     if (j < 16)
       Serial << ' ';
     else
     {
-      if (i < from + count)   // skip the last empty preamble of the line as while would end anyway
+      if (i < from + count) // skip the last empty preamble of the line as while would end anyway
       {
         j = 0;
         snprintf(buff, sizeof(buff), "\n%04d %03X: ", i, i);
@@ -1620,7 +1759,7 @@ void dumpEEPROM(uint16_t from, uint16_t count)
 } // dumpEEPROM
 #endif
 
-#if 1   // Various stuff - 
+#if 1 // Various stuff -
 /**********************************************************************
   freeRam
   
@@ -1654,12 +1793,12 @@ void dumpEEPROM(uint16_t from, uint16_t count)
   IMO int v; sits at the lowest address of the stack currently
   
 **********************************************************************/
-int freeRam(void) 
+int freeRam(void)
 {
-  extern int __heap_start, *__brkval; 
+  extern int __heap_start, *__brkval;
   int v;
-  
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+
+  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 } // freeRam
 
 /**********************************************************************
@@ -1710,6 +1849,7 @@ int freeRam(void)
     100x100byte: 44544
     1000x100byte: 443720
     10000x100byte: 4435512
+  ESP8266
     
 **********************************************************************/
 #if 0

@@ -16,6 +16,7 @@
 #include "global.h"
 #include "ntp.h"
 #include "iotWebConf_.h"
+#include "rgb_pwm.h"
 
 
 /*
@@ -26,17 +27,26 @@
   
     info
       heartbeat
-  
+
     set
-      intensity
       off
       on
       pause
-      speed
+      mode
+
 
 
   Implemented
+    'mqttTimeTopic'
 
+    /cmd
+      /reboot
+
+    /set
+      /mode
+      /brightness
+      /speed
+      /beep
 
 */
 
@@ -204,12 +214,13 @@ typedef union _timeStr {
 } timeStr;
 
 //
-//
+//  Process received MQTT messages
 //
 void mqttMessageReceived(String &topic, String &data) {
   Serial << F("MQTT message received on '") << topic << F("' with data: '") << data << F("'\n");
 
-  if (strncmp(topic.c_str(), mqttTimeTopic, sizeof(mqttTimeTopic)) == 0 ) {
+//  if (strncmp(topic.c_str(), mqttTimeTopic, sizeof(mqttTimeTopic)) == 0 ) {
+  if ( topic.startsWith(mqttTimeTopic) ) {
     Serial <<  F("Received Time update: ") << data << endl;
     timeStr buf;
 
@@ -236,166 +247,135 @@ void mqttMessageReceived(String &topic, String &data) {
   }
 
   topic.remove(0, mqttTopicPraefixLength);
-#if 0
-  if (! P) {
-    Serial << F("MQTT ignore message: Parola not initialized\n");
-    return;
-  }
-
 
   Serial << F("MQTT action: ") << topic << endl;
 
-  if ( strncmp(topic.c_str(), "/info/", 6) == 0) {
+  if ( topic.startsWith("/info") ) {
     // Sent by us. Gracefully ignore
     Serial << F("MQTT ignore action ") << topic << endl;
     return;
   }
-  
-  if ( strncmp(topic.c_str(), "/cmd/", 5) == 0) {
+
+  if (topic.startsWith("/cmd/") ) {
 
     topic.remove(0, 5);
 
-    if (strcmp(topic.c_str(), "reset") == 0) {
+    if (topic.startsWith("reboot") ) {
       needReset = true;
       return;
     }
 
-    if (strcmp(topic.c_str(), "blank") == 0) {
-      parolaTextBuffer[0] = 0;
-      P->displayClear(P_ZONE_TEXT);
-      P->displayReset(P_ZONE_TEXT);
-
-      return;
-    }
-
-    Serial << F("MQTT unknown cmd ") << topic << endl;
+    Serial << F("MQTT unknown cmd '") << topic << F("'\n");
     return;
   } // cmd
 
-  if (strncmp(topic.c_str(), "/set/", 5) == 0) {
+  if (topic.startsWith("/set/") ) {
     
     topic.remove(0, 5);
-    
-    if ( strcmp(topic.c_str(), "text") == 0) {
-      Serial << F("MQTT send new string to display\n");
 
-      if ( strcmp(parolaTextBuffer, data.c_str()) == 0 ) {
-        Serial << F("MQTT already show string\n");
+    if ( topic.startsWith("off") ) {
+      Serial << F("MQTT turn lamp off\n");
+      enableRGB(false);
+      return;
+    }
+
+    if ( topic.startsWith("on") ) {
+      Serial << F("MQTT turn lamp on\n");
+      enableRGB(true);
+      return;
+    }
+
+    if ( topic.startsWith(F("mode")) ) {
+      // -2: prev, -1: next, >=0: abs
+      int8_t v = strtoul(data.c_str(), NULL, 3);
+
+      Serial << F("MQTT set new mode: ") << v << endl;
+      setModeRGB(v);
+      return;
+    }
+
+    if ( topic.startsWith(F("intensity")) ) {
+      // -n, 0..255, +n
+
+      if ( data.length() == 0 )
+        return;
+
+      // Is number realtive (start with +/-) or absolute (start with digit)
+      bool absolute = isDigit( data[0] );
+
+      if (absolute) {
+        uint8_t v = strtoul(data.c_str(), NULL, 3);
+        Serial << F("MQTT set new intensity: ") << v << endl;
+        setAbsoluteBrightnessRGB(v);
+        return;
+      } else {
+        int8_t v = strtoul(data.c_str(), NULL, 4);
+        Serial << F("MQTT set new relative intensity: ") << v << endl;
+        setRelativeBrightnessRGB(v);
         return;
       }
-      
-      strncpy(parolaTextBuffer, data.c_str(), sizeof(parolaTextBuffer));
-      parolaTextBuffer[sizeof(parolaTextBuffer) - 1] = 0;
-
-      uint16_t textWidth = P->getTextWidth(P_ZONE_TEXT, (const uint8_t*) parolaTextBuffer);
-      uint16_t displayWidth = parolaZoneWidth[P_ZONE_TEXT];
-      parolaTextFitsToZone = textWidth <= displayWidth;
-
-      // debug print text, brackets depending on text length and display zone width, text width, zone width
-      Serial << F("MQTT set new string ")
-        << ( parolaTextFitsToZone ? "[" : "]" )
-        << strlen(parolaTextBuffer) << ":" << textWidth << ":" << displayWidth
-        << ( parolaTextFitsToZone ? "]" : "[" )
-        << " "
-        << parolaTextBuffer 
-        << endl;
-
-//    Try to get length of string to display
-//    Use different Effects if string fits ...
-
-//      uint16_t tFrom = 0, tTo = 0;
-
-//      P->getTextExtent(P_ZONE_TEXT, tFrom, tTo);
-//      Serial << "Parola.getTextExtent: " << tFrom << ":" << tTo << endl;
-
-
-      P->displayClear(P_ZONE_TEXT);
-      Serial << F("Parola.getTextWidth: ") << textWidth << endl;
-
-      // Select effect based on string fitting as a whole or larger than displayable
-      if (parolaTextFitsToZone) {
-        // Text fits on display
-        P->setTextAlignment(P_ZONE_TEXT, PA_CENTER);
-//        P->setTextAlignment(P_ZONE_TEXT, PA_LEFT);
-//        P->setTextAlignment(P_ZONE_TEXT, PA_RIGHT);
-//        P->setTextEffect(P_ZONE_TEXT, PA_PRINT, PA_NO_EFFECT);
-        P->setTextEffect(P_ZONE_TEXT, PA_SCROLL_UP, PA_NO_EFFECT);
-      } else {
-        // Text does not fit on display
-        P->setTextAlignment(P_ZONE_TEXT, PA_LEFT);
-//        P->setTextEffect(P_ZONE_TEXT, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
-        P->setTextEffect(P_ZONE_TEXT, PA_SCROLL_UP, PA_SCROLL_LEFT);
-      }
-
-      // Let displayAnimate in loopParola restart the animation
-      P->displayReset(P_ZONE_TEXT);
-      
-//      P->getTextExtent(P_ZONE_TEXT, tFrom, tTo);
-//      Serial << "Parola.getTextExtent: " << tFrom << ":" << tTo << endl;
 
       return;
     }
     
-    if ( strcmp(topic.c_str(), "off") == 0) {
-      Serial << F("MQTT turn display off\n");
-      P->displayShutdown(true);
-      return;
-    }
-
-    if ( strcmp(topic.c_str(), "on") == 0) {
-      Serial << F("MQTT turn display on\n");
-      P->displayShutdown(false);
-      return;
-    }
-
-    if ( strcmp(topic.c_str(), "intensity") == 0) {
-//      uint8_t v = strtoul(data.c_str(), NULL, 10) % 16;
-      uint16_t pwmValue = strtoul(data.c_str(), NULL, 10);
-      uint8_t v = (pwmValue % 100) % 16;
-      pwmValue /= 100;
-      pwmValue %= 1024;
-    
-//      Serial << F("MQTT set new intensity: ") << v << endl;
-      Serial << F("MQTT set new intensity: ") << pwmValue << ":" << v << endl;
-      P->setIntensity(v);
-      analogWrite(PWM, pwmValue);
-      return;
-    }
-    
-    if ( strcmp(topic.c_str(), "pause") == 0) {
+    if ( topic.startsWith("pause") ) {
+      // -1: toggle, 0: resume, 1: pause 
       uint16_t v  = strtoul(data.c_str(), NULL, 10);
       Serial << F("MQTT set new pause: ") << v << endl;
-      P->setPause(P_ZONE_TEXT, v);
+//      rgbCommand(v);
       return;
     }
     
-    if ( strcmp(topic.c_str(), "speed") == 0) {
-      uint16_t v  = strtoul(data.c_str(), NULL, 10);
-      Serial << F("MQTT set new speed: ") << v << endl;
-      P->setSpeed(P_ZONE_TEXT, v);
+    if ( topic.startsWith("speed") ) {
+      // -n, 0..255, +n
+
+      if ( data.length() == 0 )
+        return;
+
+      // Is number realtive (start with +/-) or absolute (start with digit)
+      bool absolute = isDigit( data[0] );
+
+      if (absolute) {
+        uint8_t v = strtoul(data.c_str(), NULL, 3);
+        Serial << F("MQTT set new speed: ") << v << endl;
+        setAbsoluteSpeedRGB(v);
+        return;
+      } else {
+        int8_t v = strtoul(data.c_str(), NULL, 4);
+        Serial << F("MQTT set new relative speed: ") << v << endl;
+        setRelativeSpeedRGB(v);
+        return;
+      }
+
       return;
     } 
-    
-/*    else {
-      Serial << F("MQTT unknown action ") << topic << endl;
+
+    if ( topic.startsWith("beep") ) {
+
+      if ( data.length() == 0 )
+        return;
+
+      uint8_t v = strtoul(data.c_str(), NULL, 1);
+
+      if (v == 1)
+        enableBeepRGB();
+      if (v == 0)
+        disableBeepRGB();
+
+      Serial << F("MQTT set beep: ") << v << endl;
+
       return;
     }
-*/
+    
     Serial << F("MQTT unknown set '") << topic << "'\n"; 
     return;
   } // set
 
-//  if ( strncmp(topic.c_str(), "/get/", 5) == 0) {
-//    Serial << F("MQTT unknown get ") << topic << endl;
-//    return;
-//  } // get
 
   {
     Serial << F("MQTT unknown topic '") << topic << "'\n";
     return;
   }
-
-#endif
 
   // parse topic and react
   return;
