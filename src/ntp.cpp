@@ -50,7 +50,7 @@ bool updateNtp() {
 // Called by main setup
 //
 void setupNtp () {
-  Serial << F("Setup NTP\n");
+  Serial << F("Setup NTP") << endl;
 
   ntpClient = new NTPClient(ntpUdp, ntpServer);
   

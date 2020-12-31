@@ -317,20 +317,13 @@ PROGMEM void (*cycleStepFuncs[])(void) =
 **********************************************************************/
 void setupRgb()
 {
-  // Init Serial
-  //  Serial.begin(1000000);
-  //  Serial.begin(SERIAL_BAUD);
 
-  delay(10);
-
-  //  pinMode(IIC_DTA, OUTPUT); while ( 1 ) { digitalWrite(IIC_DTA, ! digitalRead(IIC_DTA)); delay(1); };
-  //  pinMode(IIC_CLK, OUTPUT); while ( 1 ) { digitalWrite(IIC_CLK, ! digitalRead(IIC_CLK)); delay(2); };
+  Serial << F("Setup RGB") << endl;
 
   //  serialPerfTest();
 
   brzo_i2c_setup(IIC_DTA, IIC_CLK, IIC_STRETCH);
 
-  Serial << F("RGB Setup") << endl;
 
   //  pinMode(13, OUTPUT);
 
@@ -339,7 +332,7 @@ void setupRgb()
   initPanel();
 
   // Init RGB Structures
-  Serial << F("RGB Structures...") << endl;
+  Serial << F("Init RGB Structures...") << endl;
   for (uint8_t i = 0; i < MAX_STRIPS; i++)
   {
     pca_rgb.rgb[i].r = pca_rgb.rgb[i].g = pca_rgb.rgb[i].b = 0;
@@ -407,16 +400,16 @@ void setupRgb()
 
 #endif
 
-  Serial << F("PWM /OE...\n");
+//  Serial << F("PWM /OE...\n");
   //  analogWrite(PWM_OE_PIN, pwm_oe);
 
   // Buzzer
-  Serial << F("Buzzer...\n");
+  Serial << F("Init Buzzer...") << endl;
   //  pinMode(BUZZER, OUTPUT);
   //  digitalWrite(BUZZER, BUZZER_OFF);
   beep(50, 50, 50, 0);
 
-  Serial << F("RGB setup done...\n\n");
+  Serial << F("Setup RGB done.") << endl;
 } // setup
 
 /**********************************************************************
@@ -1583,7 +1576,7 @@ void pca_rgb_update(uint16_t *arr, uint8_t chip, uint8_t count)
 
   if (stubPCA)
   {
-    Serial << F("WARNING: pca_rgb_update: PCA is stubbed.") << endl;
+//    Serial << F("WARNING: pca_rgb_update: PCA is stubbed.") << endl;
     return;
   }
   else

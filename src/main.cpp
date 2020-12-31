@@ -108,11 +108,13 @@ void setup()
   }
   Serial << F("SPIFFS done.") << endl;
 */
-  Serial << F("Heap: ") << system_get_free_heap_size() << endl;
-
-  Serial << F("Setup RGB ...") << endl;
+  
   setupRgb();
-  Serial << F("RGB done.") << endl;
+
+  Serial << F("Heap: ") << system_get_free_heap_size() << endl;
+  system_print_meminfo();
+  Serial << endl;
+
 }
 
 void loop() 

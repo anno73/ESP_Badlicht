@@ -13,7 +13,7 @@ char otaUpdatePassword[OTA_UPDATE_PASWORD_STR_LEN] = "";
 // Called by main setup
 //
 void setupArduinoOta() {
-  Serial << F("OTA setup") << endl;
+  Serial << F("Setup OTA") << endl;
 
   ArduinoOTA.setHostname(appName);
 

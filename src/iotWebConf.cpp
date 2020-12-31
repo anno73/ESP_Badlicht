@@ -15,7 +15,7 @@
 #include "ntp.h"
 
 // -- Configuration specific key. The value should be modified if config structure was changed.
-#define IOTWC_CONFIG_VERSION "BADRGB_001"
+#define IOTWC_CONFIG_VERSION "BADRGB_002"
 
 // -- When BUTTON_PIN is pulled to ground on startup, the Thing will use the initial
 //      password to build an AP. (E.g. in case of lost password)
@@ -64,7 +64,8 @@ IotWebConfParameter iotMqttServer = IotWebConfParameter(
 IotWebConfParameter iotMqttPort = IotWebConfParameter(
   "MQTT Port", "mqttPort", 
   mqttPort, MQTT_PORT_STR_LEN, 
-  "text", mqttPort
+  "number", "1883", 
+  mqttPort, "min='1' max='65535' step='1'"
 );
 //IotWebConfParameter iotMqttPort = IotWebConfParameter("MQTT Port", "mqttPort", mqttPort, 5, "number", "1..65535", NULL, "min='1' max='65535' step='1'");
 IotWebConfParameter iotMqttTopicPraefix = IotWebConfParameter(
@@ -76,6 +77,12 @@ IotWebConfParameter iotMqttHeartbeatInterval = IotWebConfParameter(
   mqttHeartbeatInterval, MQTT_HEARTBEAT_INTERVALL_STR_LEN, 
   "number", "in millis", 
   mqttHeartbeatInterval, "min='1' max='65535' step='1'"
+);
+IotWebConfParameter iotMqttConnectRetryDelay = IotWebConfParameter(
+  "MQTT connect retry delay", "mqttConnectRetryDelay",
+  mqttConnectRetryDelay, MQTT_CONNECT_RETRY_DELAY_STR_LEN, 
+  "number", "in millis", 
+  mqttConnectRetryDelay, "min='1' max='65535' step='1'"
 );
 IotWebConfParameter iotMqttTimeTopic = IotWebConfParameter(
   "MQTT Time Topic", "mqttTimeTopic",
@@ -107,12 +114,13 @@ IotWebConfParameter iotNtpTzOffset = IotWebConfParameter(
 //
 void setupIotWebConf() {
 
-  Serial << F("IotWebConf setup\n");
+  Serial << F("Setup IotWebConf") << endl;
 
   iotWebConf.addParameter(&iotMqttSeparator);
   iotWebConf.addParameter(&iotMqttServer);
   iotWebConf.addParameter(&iotMqttPort);
   iotWebConf.addParameter(&iotMqttTopicPraefix);
+  iotWebConf.addParameter(&iotMqttConnectRetryDelay);
   iotWebConf.addParameter(&iotMqttTimeTopic);
 
   iotWebConf.addParameter(&iotOtaSeparator);
@@ -139,6 +147,7 @@ void setupIotWebConf() {
     mqttServer[0] = 0;
     mqttPort[0] = 0;
     mqttTopicPraefix[0] = 0;
+    mqttConnectRetryDelay[0] = 0;
     mqttHeartbeatInterval[0] = 0;
     mqttTimeTopic[0] = 0;
 
@@ -157,6 +166,8 @@ void setupIotWebConf() {
   webServer.on("/config", [] { iotWebConf.handleConfig(); });
   webServer.onNotFound([]() { iotWebConf.handleNotFound(); });
 
+  iotWebConfConvertStringParameters();
+
 } // setupIotWebConv
 
 
@@ -169,7 +180,7 @@ void loopIotWebConf()
 } // loopIotWebconf
 
 //
-// Dirty hack to confert strings to integers.
+// Dirty hack to convert strings to integers.
 //
 void iotWebConfConvertStringParameters() {
 
@@ -178,6 +189,8 @@ void iotWebConfConvertStringParameters() {
   mqttConnectRetryDelayInt = atoi(mqttConnectRetryDelay);
 
   mqttHeartbeatIntervalInt = atoi(mqttHeartbeatInterval);
+
+  mqttConnectRetryDelayInt = atoi(mqttConnectRetryDelay);
 
   mqttTopicPraefixLength = strlen(mqttTopicPraefix);
 

@@ -50,22 +50,31 @@
 
 */
 
+const uint16_t MQTT_BUFFER_SIZE = 256;
+
 char mqttServer[MQTT_SERVER_STR_LEN] = "127.0.0.1";
+
 char mqttPort[MQTT_PORT_STR_LEN] = "1883";
-unsigned int mqttPortInt = 0;
+uint16_t mqttPortInt = 0;
+
 char mqttTopicPraefix[MQTT_TOPIC_PRAEFIX_STR_LEN] = "";
-unsigned int mqttTopicPraefixLength = 0;
+uint16_t mqttTopicPraefixLength = 0;
+
 char mqttConnectRetryDelay[MQTT_CONNECT_RETRY_DELAY_STR_LEN] = "5000";
-unsigned int mqttConnectRetryDelayInt = 0;
+uint16_t mqttConnectRetryDelayInt = 0;
+
 char mqttHeartbeatInterval[MQTT_HEARTBEAT_INTERVALL_STR_LEN] = "60000";  // set to 0 to turn off heartbeat
 unsigned long mqttHeartbeatIntervalInt;
+
 bool mqttDisabled = true;
 char mqttTimeTopic[MQTT_TIME_TOPIC_STR_LEN] = "";
+bool mqttTimeTopicSet = false;
 
 // wifiConnected callback indicates that MQTT can now connect to the broker
 bool mqttNeedConnect = false;
 
-MQTTClient mqttClient;
+//MQTTClient mqttClient(MQTT_BUFFER_SIZE);
+MQTTClient mqttClient(256);
 
 void mqttSendHeartbeat();
 void mqttMessageReceived(String &, String &);
@@ -75,7 +84,7 @@ void mqttMessageReceived(String &, String &);
 //
 void setupMqttClient() {
 
-  Serial << F("MQTT setup\n");
+  Serial << F("Setup MQTT") << endl;
   
   mqttClient.begin(mqttServer, mqttPortInt, wifiClient);
   //  mqttClient.setTimeout(100);
@@ -115,7 +124,7 @@ bool connectMqtt() {
 
   if (!mqttClient.connect(iotWebConf.getThingName())) {
     lastConnectionAttempt = now;
-    Serial << F("MQTT Connection to ") << mqttServer << ':' << mqttPortInt << F(" failed: ") << mqttClient.lastError() << ':' << mqttClient.returnCode() << F(". Will try again\n");
+    Serial << F("MQTT Connection to ") << mqttServer << ':' << mqttPortInt << F(" failed: ") << mqttClient.lastError() << ':' << mqttClient.returnCode() << F(". Will try again in ") << mqttConnectRetryDelayInt << F("ms") << endl;
     return false;
   }
 
@@ -181,12 +190,12 @@ void mqttSendHeartbeat() {
     doc["freeHeap"] = ESP.getFreeHeap();
     doc["SSID"] = WiFi.SSID();
     doc["RSSI"] = WiFi.RSSI();
-    doc["MAC"] = WiFi.macAddress();
+//    doc["MAC"] = WiFi.macAddress();
     doc["IP"] = WiFi.localIP().toString();
 
     String json;
     serializeJsonPretty(doc, json);
-    Serial << F("MQTT send heartbeat [") << topic << F("]:\n") << json << endl;
+    Serial << F("MQTT send heartbeat [") << topic << F("] with ") << json.length() << F(" bytes:\n") << json << endl;
 
     serializeJson(doc, json);
     bool rc = mqttClient.publish(topic, json);
@@ -217,10 +226,10 @@ typedef union _timeStr {
 //  Process received MQTT messages
 //
 void mqttMessageReceived(String &topic, String &data) {
-  Serial << F("MQTT message received on '") << topic << F("' with data: '") << data << F("'\n");
+  Serial << F("MQTT message received on '") << topic << F("' with ") << data.length() << F(" bytes: '") << data << F("'\n");
 
 //  if (strncmp(topic.c_str(), mqttTimeTopic, sizeof(mqttTimeTopic)) == 0 ) {
-  if ( topic.startsWith(mqttTimeTopic) ) {
+  if ( mqttTimeTopicSet && topic.startsWith(mqttTimeTopic) ) {
     Serial <<  F("Received Time update: ") << data << endl;
     timeStr buf;
 
@@ -287,7 +296,7 @@ void mqttMessageReceived(String &topic, String &data) {
 
     if ( topic.startsWith(F("mode")) ) {
       // -2: prev, -1: next, >=0: abs
-      int8_t v = strtoul(data.c_str(), NULL, 3);
+      int8_t v = strtoul(data.c_str(), NULL, 10);
 
       Serial << F("MQTT set new mode: ") << v << endl;
       setModeRGB(v);
@@ -304,12 +313,12 @@ void mqttMessageReceived(String &topic, String &data) {
       bool absolute = isDigit( data[0] );
 
       if (absolute) {
-        uint8_t v = strtoul(data.c_str(), NULL, 3);
+        uint8_t v = strtoul(data.c_str(), NULL, 10);
         Serial << F("MQTT set new intensity: ") << v << endl;
         setAbsoluteBrightnessRGB(v);
         return;
       } else {
-        int8_t v = strtoul(data.c_str(), NULL, 4);
+        int8_t v = strtoul(data.c_str(), NULL, 10);
         Serial << F("MQTT set new relative intensity: ") << v << endl;
         setRelativeBrightnessRGB(v);
         return;
@@ -336,12 +345,12 @@ void mqttMessageReceived(String &topic, String &data) {
       bool absolute = isDigit( data[0] );
 
       if (absolute) {
-        uint8_t v = strtoul(data.c_str(), NULL, 3);
+        uint8_t v = strtoul(data.c_str(), NULL, 10);
         Serial << F("MQTT set new speed: ") << v << endl;
         setAbsoluteSpeedRGB(v);
         return;
       } else {
-        int8_t v = strtoul(data.c_str(), NULL, 4);
+        int8_t v = strtoul(data.c_str(), NULL, 10);
         Serial << F("MQTT set new relative speed: ") << v << endl;
         setRelativeSpeedRGB(v);
         return;
@@ -355,7 +364,7 @@ void mqttMessageReceived(String &topic, String &data) {
       if ( data.length() == 0 )
         return;
 
-      uint8_t v = strtoul(data.c_str(), NULL, 1);
+      uint8_t v = strtoul(data.c_str(), NULL, 10);
 
       if (v == 1)
         enableBeepRGB();

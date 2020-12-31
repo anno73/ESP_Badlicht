@@ -14,15 +14,15 @@ extern char mqttServer[];
 
 const uint8_t MQTT_PORT_STR_LEN = 6;
 extern char mqttPort[];
-extern unsigned int mqttPortInt;
+extern uint16_t mqttPortInt;
 
 const uint8_t MQTT_TOPIC_PRAEFIX_STR_LEN = 64;
 extern char mqttTopicPraefix[];
-extern unsigned int mqttTopicPraefixLength;
+extern uint16_t mqttTopicPraefixLength;
 
 const uint8_t MQTT_CONNECT_RETRY_DELAY_STR_LEN = 7;
 extern char mqttConnectRetryDelay[];
-extern unsigned int mqttConnectRetryDelayInt;
+extern uint16_t mqttConnectRetryDelayInt;
 
 const uint8_t MQTT_HEARTBEAT_INTERVALL_STR_LEN = 7;
 extern char mqttHeartbeatInterval[];
