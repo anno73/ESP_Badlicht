@@ -190,14 +190,15 @@ void mqttSendHeartbeat() {
     doc["freeHeap"] = ESP.getFreeHeap();
     doc["SSID"] = WiFi.SSID();
     doc["RSSI"] = WiFi.RSSI();
-//    doc["MAC"] = WiFi.macAddress();
+    doc["MAC"] = WiFi.macAddress();
     doc["IP"] = WiFi.localIP().toString();
 
     String json;
-    serializeJsonPretty(doc, json);
+    serializeJsonPretty(doc, json); 
     Serial << F("MQTT send heartbeat [") << topic << F("] with ") << json.length() << F(" bytes:\n") << json << endl;
 
-    serializeJson(doc, json);
+    json = ""; // serializeJson* APPENDS to target String object!
+    serializeJson(doc, json); 
     bool rc = mqttClient.publish(topic, json);
 
     if (! rc) {
