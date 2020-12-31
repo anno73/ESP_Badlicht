@@ -1,29 +1,27 @@
 #pragma once
 
-#include <WiFiUdp.h>
-// https://github.com/arduino-libraries/NTPClient
-// BEWARE: there are some forks and libs with similar name!
-#include <NTPClient.h>
+#define MYTZ TZ_Europe_Paris
 
-#define NTP_SERVER_STR_LEN 64
+const int32_t NTP_MIN_TIME_EPOCH = 1577836800; // 2020-01-01-00:00:00
+
+const uint8_t NTP_SERVER_STR_LEN = 64;
 extern char ntpServer[];
 
-#define NTP_TZ_OFFSET_STR_LEN 4
+const uint8_t NTP_TZ_OFFSET_STR_LEN = 4;
 extern char ntpTzOffset[];
 extern int ntpTzOffsetInt;
-
-//unsigned int ntpLocalPort = 2390;
-//const int ntpPacketSize = 48;
-//unsigned long ntpUpdateInterval = 60000;
-
-//byte packetBuffer[ntpPacketSize];
-
-extern WiFiUDP ntpUdp;
-extern NTPClient * ntpClient;
 
 // wifiConnected callback indicates that now we can/should issue a NTP update
 extern bool ntpNeedUpdate;
 
+// Global variables for Time
+extern tm *NOW_TM; // pointer to a tm struct;
+extern time_t NOW; // global holding current datetime as Epoch
+
 extern void setupNtp();
 extern void loopNtp();
-extern bool timeValid;
+//extern bool timeValid;
+
+extern String dateTimeStr(const char *);
+extern String dateTimeStr(time_t, const char *);
+
