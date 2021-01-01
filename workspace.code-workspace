@@ -10,6 +10,9 @@
 			"invrt",
 			"outdrv",
 			"outne"
-		]
+		],
+		"files.associations": {
+			"functional": "cpp"
+		}
 	}
 }
