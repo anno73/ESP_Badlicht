@@ -15,16 +15,16 @@
 #include "ntp.h"
 
 // -- Configuration specific key. The value should be modified if config structure was changed.
-#define IOTWC_CONFIG_VERSION "BADRGB_002"
+const char IOTWC_CONFIG_VERSION[] = "BADRGB_002";
 
 // -- When BUTTON_PIN is pulled to ground on startup, the Thing will use the initial
 //      password to build an AP. (E.g. in case of lost password)
-#define IOTWC_BUTTON_PIN 2
+const uint8_t IOTWC_BUTTON_PIN = 2;
 
 // -- Status indicator pin.
 //      First it will light up (kept LOW), on Wifi connection it will blink,
 //      when connected to the Wifi it will turn off (kept HIGH).
-#define IOTWC_STATUS_PIN LED_BUILTIN
+const uint8_t IOTWC_STATUS_PIN = LED_BUILTIN;
 
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
@@ -47,55 +47,51 @@ bool formValidator();
 
 IotWebConf iotWebConf(appName, &dnsServer, &webServer, wifiInitialApPassword, IOTWC_CONFIG_VERSION);
 
-IotWebConfSeparator iotMqttSeparator = IotWebConfSeparator("MQTT Parameter");
+// id, label
+iotwebconf::ParameterGroup iotGroupMqtt = iotwebconf::ParameterGroup("groupMqtt", "MQTT Parameters");
 // label, id
-// valueBuffer, length
-// type, placeholder
-// default value, custom HTML
-IotWebConfParameter iotMqttServer = IotWebConfParameter(
+// valueBuffer, length, 
+// defaultValue, placeholder, custom HTML
+iotwebconf::TextParameter iotMqttServer = iotwebconf::TextParameter(
     "MQTT Server", "mqttServer",
     mqttServer, MQTT_SERVER_STR_LEN,
-    "text", mqttServer,
-    mqttServer, NULL);
-IotWebConfParameter iotMqttPort = IotWebConfParameter(
+    mqttServer, mqttServer, "");
+iotwebconf::NumberParameter iotMqttPort = iotwebconf::NumberParameter(
     "MQTT Port", "mqttPort",
     mqttPort, MQTT_PORT_STR_LEN,
-    "number", "1883",
-    mqttPort, "min='1' max='65535' step='1'");
-//IotWebConfParameter iotMqttPort = IotWebConfParameter("MQTT Port", "mqttPort", mqttPort, 5, "number", "1..65535", NULL, "min='1' max='65535' step='1'");
-IotWebConfParameter iotMqttTopicPraefix = IotWebConfParameter(
+    mqttPort, mqttPort, "min='1' max='65535' step='1'");
+iotwebconf::TextParameter iotMqttTopicPraefix = iotwebconf::TextParameter(
     "MQTT Topic Praefix", "mqttTopicPraefix",
-    mqttTopicPraefix, MQTT_TOPIC_PRAEFIX_STR_LEN);
-IotWebConfParameter iotMqttHeartbeatInterval = IotWebConfParameter(
+    mqttTopicPraefix, MQTT_TOPIC_PRAEFIX_STR_LEN,
+    mqttTopicPraefix, mqttTopicPraefix, "");
+iotwebconf::NumberParameter iotMqttHeartbeatInterval = iotwebconf::NumberParameter(
     "MQTT Hearbeat Interval", "mqttHeartbeatInterval",
     mqttHeartbeatInterval, MQTT_HEARTBEAT_INTERVALL_STR_LEN,
-    "number", "in millis",
-    mqttHeartbeatInterval, "min='1' max='65535' step='1'");
-IotWebConfParameter iotMqttConnectRetryDelay = IotWebConfParameter(
+    mqttHeartbeatInterval, "in milliseconds", "min='1' max='65535' step='1'");
+iotwebconf::NumberParameter iotMqttConnectRetryDelay = iotwebconf::NumberParameter(
     "MQTT connect retry delay", "mqttConnectRetryDelay",
     mqttConnectRetryDelay, MQTT_CONNECT_RETRY_DELAY_STR_LEN,
-    "number", "in millis",
-    mqttConnectRetryDelay, "min='1' max='65535' step='1'");
-IotWebConfParameter iotMqttTimeTopic = IotWebConfParameter(
+    mqttConnectRetryDelay, "in milliseconds", "min='1' max='65535' step='1'");
+iotwebconf::TextParameter iotMqttTimeTopic = iotwebconf::TextParameter(
     "MQTT Time Topic", "mqttTimeTopic",
     mqttTimeTopic, MQTT_TIME_TOPIC_STR_LEN,
-    "text");
+    mqttTimeTopic, mqttTimeTopic, "");
 
-IotWebConfSeparator iotOtaSeparator = IotWebConfSeparator("OTA Parameter");
-IotWebConfParameter iotOtaUpdatePassword = IotWebConfParameter(
+iotwebconf::ParameterGroup iotGroupOta = iotwebconf::ParameterGroup("", "OTA Parameter");
+iotwebconf::PasswordParameter iotOtaUpdatePassword = iotwebconf::PasswordParameter(
     "OTA Update Password", "otaUpdatePassword",
-    ota::otaUpdatePassword, OTA_UPDATE_PASWORD_STR_LEN,
-    "password");
+    ota::otaUpdatePassword, ota::OTA_UPDATE_PASWORD_STR_LEN,
+    ota::otaUpdatePassword, "");
 
-IotWebConfSeparator iotNtpSeparator = IotWebConfSeparator("NTP");
-IotWebConfParameter iotNtpServer = IotWebConfParameter(
+iotwebconf::ParameterGroup iotGroupNtp = iotwebconf::ParameterGroup("", "NTP");
+iotwebconf::TextParameter iotNtpServer = iotwebconf::TextParameter(
     "NTP Server", "ntpServer",
     ntpServer, NTP_SERVER_STR_LEN,
-    "text");
-IotWebConfParameter iotNtpTzOffset = IotWebConfParameter(
+    ntpServer, ntpServer, "");
+iotwebconf::NumberParameter iotNtpTzOffset = iotwebconf::NumberParameter(
     "NTP timezone Offset", "ntpTzOffset",
     ntpTzOffset, NTP_TZ_OFFSET_STR_LEN,
-    "number");
+    ntpTzOffset, "Timezone Value", "min='-12' max='12' step='1'");
 
 //
 // Called from main setup
@@ -105,19 +101,19 @@ void setupIotWebConf()
 
   Serial << F("Setup IotWebConf") << endl;
 
-  iotWebConf.addParameter(&iotMqttSeparator);
-  iotWebConf.addParameter(&iotMqttServer);
-  iotWebConf.addParameter(&iotMqttPort);
-  iotWebConf.addParameter(&iotMqttTopicPraefix);
-  iotWebConf.addParameter(&iotMqttConnectRetryDelay);
-  iotWebConf.addParameter(&iotMqttTimeTopic);
+  iotGroupMqtt.addItem(&iotMqttServer);
+  iotGroupMqtt.addItem(&iotMqttPort);
+  iotGroupMqtt.addItem(&iotMqttTopicPraefix);
+  iotGroupMqtt.addItem(&iotMqttConnectRetryDelay);
+  iotGroupMqtt.addItem(&iotMqttTimeTopic);
+  iotWebConf.addParameterGroup(&iotGroupMqtt);
 
-  iotWebConf.addParameter(&iotOtaSeparator);
-  iotWebConf.addParameter(&iotOtaUpdatePassword);
+  iotGroupOta.addItem(&iotOtaUpdatePassword);
+  iotWebConf.addParameterGroup(&iotGroupOta);
 
-  iotWebConf.addParameter(&iotNtpSeparator);
-  iotWebConf.addParameter(&iotNtpServer);
-  iotWebConf.addParameter(&iotNtpTzOffset);
+  iotGroupNtp.addItem(&iotNtpServer);
+  iotGroupNtp.addItem(&iotNtpTzOffset);
+  iotWebConf.addParameterGroup(&iotGroupNtp);
 
   iotWebConf.setStatusPin(IOTWC_STATUS_PIN);
   iotWebConf.setConfigPin(IOTWC_BUTTON_PIN);
@@ -125,14 +121,23 @@ void setupIotWebConf()
   iotWebConf.setConfigSavedCallback(&configSaved);
   iotWebConf.setFormValidator(&formValidator);
   iotWebConf.setWifiConnectionCallback(&wifiConnected);
-  iotWebConf.setupUpdateServer(&httpUpdateServer);
+
+  //  iotWebConf.setupUpdateServer(&httpUpdateServer);
+
+  iotWebConf.setupUpdateServer(
+      [](const char *updatePath) {
+        httpUpdateServer.setup(&webServer, updatePath);
+      },
+      [](const char *userName, char *password) {
+        httpUpdateServer.updateCredentials(userName, password);
+      });
 
   // Initialize configuration
   bool validConfig = iotWebConf.init();
   if (!validConfig)
   {
     Serial << F("iotWebConf did not find valid config. Initializing\n");
-
+#if 0
     mqttServer[0] = 0;
     mqttPort[0] = 0;
     mqttTopicPraefix[0] = 0;
@@ -144,6 +149,7 @@ void setupIotWebConf()
 
     ntpServer[0] = 0;
     ntpTzOffset[0] = 0;
+#endif
   }
 
   // Reduce wait time on boot up
