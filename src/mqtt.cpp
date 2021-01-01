@@ -186,7 +186,8 @@ void mqttSendHeartbeat() {
     const int jsonCapacity = JSON_OBJECT_SIZE(10);
     StaticJsonDocument<jsonCapacity> doc;
 
-    doc["time"] = ntpClient->getFormattedTime();
+//    doc["time"] = ntpClient->getFormattedTime();
+    doc["time"] = dateTimeStr(time(nullptr), "%Y-%m-%d %H:%M:%S");
     doc["freeHeap"] = ESP.getFreeHeap();
     doc["SSID"] = WiFi.SSID();
     doc["RSSI"] = WiFi.RSSI();
@@ -251,7 +252,7 @@ void mqttMessageReceived(String &topic, String &data) {
       atoi(buf.pack.year)
     );
 
-    timeValid = true;
+//    timeValid = true;
 
     return;
   }

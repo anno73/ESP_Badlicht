@@ -31,13 +31,11 @@ ESP8266WebServer webServer(80);
 WiFiClient wifiClient;
 ESP8266HTTPUpdateServer httpUpdateServer;
 
-
 // -- Initial name of the Thing. Used e.g. as SSID of the own Access Point.
 const char appName[] = "BAD_RGB";
 
 // -- Initial password to connect to the Thing, when it creates an own Access Point.
 const char wifiInitialApPassword[] = "12345678";
-
 
 // -- Method declarations.
 void iotWebConfConvertStringParameters(void);
@@ -49,70 +47,61 @@ bool formValidator();
 
 IotWebConf iotWebConf(appName, &dnsServer, &webServer, wifiInitialApPassword, IOTWC_CONFIG_VERSION);
 
-
 IotWebConfSeparator iotMqttSeparator = IotWebConfSeparator("MQTT Parameter");
-  // label, id
-  // valueBuffer, length
-  // type, placeholder
-  // default value, custom HTML
+// label, id
+// valueBuffer, length
+// type, placeholder
+// default value, custom HTML
 IotWebConfParameter iotMqttServer = IotWebConfParameter(
-  "MQTT Server", "mqttServer", 
-  mqttServer, MQTT_SERVER_STR_LEN,
-  "text", mqttServer,
-  mqttServer, NULL
-);
+    "MQTT Server", "mqttServer",
+    mqttServer, MQTT_SERVER_STR_LEN,
+    "text", mqttServer,
+    mqttServer, NULL);
 IotWebConfParameter iotMqttPort = IotWebConfParameter(
-  "MQTT Port", "mqttPort", 
-  mqttPort, MQTT_PORT_STR_LEN, 
-  "number", "1883", 
-  mqttPort, "min='1' max='65535' step='1'"
-);
+    "MQTT Port", "mqttPort",
+    mqttPort, MQTT_PORT_STR_LEN,
+    "number", "1883",
+    mqttPort, "min='1' max='65535' step='1'");
 //IotWebConfParameter iotMqttPort = IotWebConfParameter("MQTT Port", "mqttPort", mqttPort, 5, "number", "1..65535", NULL, "min='1' max='65535' step='1'");
 IotWebConfParameter iotMqttTopicPraefix = IotWebConfParameter(
-  "MQTT Topic Praefix", "mqttTopicPraefix", 
-  mqttTopicPraefix, MQTT_TOPIC_PRAEFIX_STR_LEN
-);
+    "MQTT Topic Praefix", "mqttTopicPraefix",
+    mqttTopicPraefix, MQTT_TOPIC_PRAEFIX_STR_LEN);
 IotWebConfParameter iotMqttHeartbeatInterval = IotWebConfParameter(
-  "MQTT Hearbeat Interval", "mqttHeartbeatInterval",
-  mqttHeartbeatInterval, MQTT_HEARTBEAT_INTERVALL_STR_LEN, 
-  "number", "in millis", 
-  mqttHeartbeatInterval, "min='1' max='65535' step='1'"
-);
+    "MQTT Hearbeat Interval", "mqttHeartbeatInterval",
+    mqttHeartbeatInterval, MQTT_HEARTBEAT_INTERVALL_STR_LEN,
+    "number", "in millis",
+    mqttHeartbeatInterval, "min='1' max='65535' step='1'");
 IotWebConfParameter iotMqttConnectRetryDelay = IotWebConfParameter(
-  "MQTT connect retry delay", "mqttConnectRetryDelay",
-  mqttConnectRetryDelay, MQTT_CONNECT_RETRY_DELAY_STR_LEN, 
-  "number", "in millis", 
-  mqttConnectRetryDelay, "min='1' max='65535' step='1'"
-);
+    "MQTT connect retry delay", "mqttConnectRetryDelay",
+    mqttConnectRetryDelay, MQTT_CONNECT_RETRY_DELAY_STR_LEN,
+    "number", "in millis",
+    mqttConnectRetryDelay, "min='1' max='65535' step='1'");
 IotWebConfParameter iotMqttTimeTopic = IotWebConfParameter(
-  "MQTT Time Topic", "mqttTimeTopic",
-  mqttTimeTopic, MQTT_TIME_TOPIC_STR_LEN, 
-  "text"
-);
+    "MQTT Time Topic", "mqttTimeTopic",
+    mqttTimeTopic, MQTT_TIME_TOPIC_STR_LEN,
+    "text");
 
 IotWebConfSeparator iotOtaSeparator = IotWebConfSeparator("OTA Parameter");
 IotWebConfParameter iotOtaUpdatePassword = IotWebConfParameter(
-  "OTA Update Password", "otaUpdatePassword", 
-  ota::otaUpdatePassword, OTA_UPDATE_PASWORD_STR_LEN,
-  "password"
-);
+    "OTA Update Password", "otaUpdatePassword",
+    ota::otaUpdatePassword, OTA_UPDATE_PASWORD_STR_LEN,
+    "password");
 
 IotWebConfSeparator iotNtpSeparator = IotWebConfSeparator("NTP");
 IotWebConfParameter iotNtpServer = IotWebConfParameter(
-  "NTP Server", "ntpServer", 
-  ntpServer, NTP_SERVER_STR_LEN,
-  "text"
-);
+    "NTP Server", "ntpServer",
+    ntpServer, NTP_SERVER_STR_LEN,
+    "text");
 IotWebConfParameter iotNtpTzOffset = IotWebConfParameter(
-  "NTP timezone Offset", "ntpTzOffset", 
-  ntpTzOffset, NTP_TZ_OFFSET_STR_LEN,
-  "number"
-);
+    "NTP timezone Offset", "ntpTzOffset",
+    ntpTzOffset, NTP_TZ_OFFSET_STR_LEN,
+    "number");
 
 //
 // Called from main setup
 //
-void setupIotWebConf() {
+void setupIotWebConf()
+{
 
   Serial << F("Setup IotWebConf") << endl;
 
@@ -129,11 +118,10 @@ void setupIotWebConf() {
   iotWebConf.addParameter(&iotNtpSeparator);
   iotWebConf.addParameter(&iotNtpServer);
   iotWebConf.addParameter(&iotNtpTzOffset);
-    
-  
+
   iotWebConf.setStatusPin(IOTWC_STATUS_PIN);
   iotWebConf.setConfigPin(IOTWC_BUTTON_PIN);
-  
+
   iotWebConf.setConfigSavedCallback(&configSaved);
   iotWebConf.setFormValidator(&formValidator);
   iotWebConf.setWifiConnectionCallback(&wifiConnected);
@@ -141,7 +129,8 @@ void setupIotWebConf() {
 
   // Initialize configuration
   bool validConfig = iotWebConf.init();
-  if (! validConfig) {
+  if (!validConfig)
+  {
     Serial << F("iotWebConf did not find valid config. Initializing\n");
 
     mqttServer[0] = 0;
@@ -162,7 +151,7 @@ void setupIotWebConf() {
 
   // Set up required URL handlers on the web server
   webServer.on("/", handleRoot);
-//  webServer.on("/boot", handleBoot);
+  //  webServer.on("/boot", handleBoot);
   webServer.on("/config", [] { iotWebConf.handleConfig(); });
   webServer.onNotFound([]() { iotWebConf.handleNotFound(); });
 
@@ -170,19 +159,19 @@ void setupIotWebConf() {
 
 } // setupIotWebConv
 
-
 //
 // Called from main loop.
 //
 void loopIotWebConf()
 {
-    iotWebConf.doLoop();
+  iotWebConf.doLoop();
 } // loopIotWebconf
 
 //
 // Dirty hack to convert strings to integers.
 //
-void iotWebConfConvertStringParameters() {
+void iotWebConfConvertStringParameters()
+{
 
   mqttPortInt = atoi(mqttPort);
 
@@ -203,7 +192,8 @@ void iotWebConfConvertStringParameters() {
 //
 void handleRoot()
 {
-  if (iotWebConf.handleCaptivePortal()) {
+  if (iotWebConf.handleCaptivePortal())
+  {
     // Let IotWebConf test and handle captive portal requests.
     return;
   }
@@ -239,22 +229,26 @@ void handleRoot()
 void handleBoot()
 {
   Serial << F("Reboot requested.\n");
-  needReset = true;  
+  needReset = true;
 } // handleBoot
 
 //
 // Callback when WiFi is connected. Triggers some actions
 //
-void wifiConnected() {
+void wifiConnected()
+{
   Serial << F("WiFi is connected, trigger MQTT and NTP\n");
+
   mqttNeedConnect = true;
-  ntpNeedUpdate = true;
+  ntpNeedUpdate = true; // could actually work seamless in background with ESP8266 native sntp library
+
 } // wifiConnected
 
 //
 // Callback when configuration is saved. Triggers some actions.
 //
-void configSaved() {
+void configSaved()
+{
   Serial << F("Configuration saved. Reboot needed\n");
   // Reboot is the easiest way to utilize new configuration
   needReset = true;
@@ -263,14 +257,13 @@ void configSaved() {
 //
 // ToDo: validate configuration parameters.
 //
-bool formValidator() {
+bool formValidator()
+{
   Serial << F("Validating form\n");
 
   bool valid = true;
 
-
   // check for digits in numeric values?
-
 
   return valid;
 } // formValidator
