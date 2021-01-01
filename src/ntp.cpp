@@ -109,8 +109,4 @@ String dateTimeStr(time_t epochtime, const char *pattern)
 String dateTimeStr(const char *pattern)
 {
   return dateTimeStr(time(nullptr), pattern);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> e83bd59f7f8bbfca05ef6aebf7132fce05428a48
