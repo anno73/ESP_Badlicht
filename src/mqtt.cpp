@@ -186,18 +186,20 @@ void mqttSendHeartbeat() {
     const int jsonCapacity = JSON_OBJECT_SIZE(10);
     StaticJsonDocument<jsonCapacity> doc;
 
-    doc["time"] = ntpClient->getFormattedTime();
+//    doc["time"] = ntpClient->getFormattedTime();
+    doc["time"] = dateTimeStr(time(nullptr), "%Y-%m-%d %H:%M:%S");
     doc["freeHeap"] = ESP.getFreeHeap();
     doc["SSID"] = WiFi.SSID();
     doc["RSSI"] = WiFi.RSSI();
-//    doc["MAC"] = WiFi.macAddress();
+    doc["MAC"] = WiFi.macAddress();
     doc["IP"] = WiFi.localIP().toString();
 
     String json;
-    serializeJsonPretty(doc, json);
+    serializeJsonPretty(doc, json); 
     Serial << F("MQTT send heartbeat [") << topic << F("] with ") << json.length() << F(" bytes:\n") << json << endl;
 
-    serializeJson(doc, json);
+    json = ""; // serializeJson* APPENDS to target String object!
+    serializeJson(doc, json); 
     bool rc = mqttClient.publish(topic, json);
 
     if (! rc) {
@@ -250,7 +252,7 @@ void mqttMessageReceived(String &topic, String &data) {
       atoi(buf.pack.year)
     );
 
-    timeValid = true;
+//    timeValid = true;
 
     return;
   }
