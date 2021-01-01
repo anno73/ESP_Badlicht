@@ -71,7 +71,7 @@ void setup()
   bool doubleReset = false;
 
   Serial.begin(2000000);
-  Serial << endl << appName << F("starting up...\n");
+  Serial << endl << appName << F(" starting up...\n");
 
   if (drd.detectDoubleReset()) {
     Serial << F("Double reset detected\n");
