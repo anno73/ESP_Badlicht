@@ -204,27 +204,23 @@ void handleRoot()
     return;
   }
 
-  String s = "<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>";
-  s += "<title>";
+  String s = F("<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/><title>");
   s += appName;
-  s += "</title></head><body><h1>MQTT settings</h1>";
-  s += "<ul>";
-  s += "<li>MQTT server: ";
+  s += F("</title></head><body><h1>MQTT settings</h1><ul><li>MQTT Server: ");
   s += mqttServer;
-  s += "<li>MQTT port: ";
+  s += F("<li>MQTT Port: ");
   s += mqttPort;
-  s += "<li>MQTT Topic Praefix: ";
+  s += F("<li>MQTT Topic Praefix: ");
   s += mqttTopicPraefix;
-  s += "<li>OTA Server: ";
-  s += mqttTopicPraefix;
-  s += "<li>NTP Server: ";
-  s += mqttTopicPraefix;
-  s += "<li>Timezone: ";
-  s += mqttTopicPraefix;
+  s += F("<li>MQTT Connect Retry Delay: ");
+  s += mqttConnectRetryDelay;
 
-  s += "</ul>";
-  s += "Go to <a href='config'>configure page</a> to change values.";
-  s += "</body></html>\n";
+  s += F("</ul><h1>NTP settings</h1><ul><li>NTP Server: ");
+  s += ntpServer;
+  s += F("<li>Timezone: ");
+  s += ntpTzOffset;
+
+  s += F("</ul>Go to <a href='config'>configure page</a> to change values.</body></html>\n");
 
   webServer.send(200, "text/html", s);
 } // handleRoot
