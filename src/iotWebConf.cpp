@@ -77,13 +77,13 @@ iotwebconf::TextParameter iotMqttTimeTopic = iotwebconf::TextParameter(
     mqttTimeTopic, MQTT_TIME_TOPIC_STR_LEN,
     mqttTimeTopic, mqttTimeTopic, "");
 
-iotwebconf::ParameterGroup iotGroupOta = iotwebconf::ParameterGroup("", "OTA Parameter");
+iotwebconf::ParameterGroup iotGroupOta = iotwebconf::ParameterGroup("groupOTA", "OTA Parameter");
 iotwebconf::PasswordParameter iotOtaUpdatePassword = iotwebconf::PasswordParameter(
     "OTA Update Password", "otaUpdatePassword",
     ota::otaUpdatePassword, ota::OTA_UPDATE_PASWORD_STR_LEN,
     ota::otaUpdatePassword, "");
 
-iotwebconf::ParameterGroup iotGroupNtp = iotwebconf::ParameterGroup("", "NTP");
+iotwebconf::ParameterGroup iotGroupNtp = iotwebconf::ParameterGroup("groupNTP", "NTP");
 iotwebconf::TextParameter iotNtpServer = iotwebconf::TextParameter(
     "NTP Server", "ntpServer",
     ntpServer, NTP_SERVER_STR_LEN,
@@ -105,6 +105,7 @@ void setupIotWebConf()
   iotGroupMqtt.addItem(&iotMqttPort);
   iotGroupMqtt.addItem(&iotMqttTopicPraefix);
   iotGroupMqtt.addItem(&iotMqttConnectRetryDelay);
+  iotGroupMqtt.addItem(&iotMqttHeartbeatInterval);
   iotGroupMqtt.addItem(&iotMqttTimeTopic);
   iotWebConf.addParameterGroup(&iotGroupMqtt);
 
@@ -184,8 +185,6 @@ void iotWebConfConvertStringParameters()
   mqttConnectRetryDelayInt = atoi(mqttConnectRetryDelay);
 
   mqttHeartbeatIntervalInt = atoi(mqttHeartbeatInterval);
-
-  mqttConnectRetryDelayInt = atoi(mqttConnectRetryDelay);
 
   mqttTopicPraefixLength = strlen(mqttTopicPraefix);
 
