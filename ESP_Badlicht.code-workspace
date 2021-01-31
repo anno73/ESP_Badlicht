@@ -1,0 +1,24 @@
+{
+    "folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"PCAs",
+			"bblanchon",
+			"deps",
+			"invrt",
+			"khoih",
+			"outdrv",
+			"outne",
+			"pasko",
+			"paulstoffregen",
+			"prampec"
+		],
+		"files.associations": {
+			"functional": "cpp"
+		}
+	}
+}
