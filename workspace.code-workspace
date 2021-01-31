@@ -7,9 +7,15 @@
 	"settings": {
 		"cSpell.words": [
 			"PCAs",
+			"bblanchon",
+			"deps",
 			"invrt",
+			"khoih",
 			"outdrv",
-			"outne"
+			"outne",
+			"pasko",
+			"paulstoffregen",
+			"prampec"
 		],
 		"files.associations": {
 			"functional": "cpp"

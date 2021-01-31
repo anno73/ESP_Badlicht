@@ -44,8 +44,9 @@
 //#define BNT_USER 16
 
 
-extern "C" {
-#include "user_interface.h"
+extern "C" 
+{
+#include "user_interface.h"   // So we can change hostname of device via 
 }
 
 
