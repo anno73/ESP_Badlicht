@@ -39,6 +39,7 @@ const char wifiInitialApPassword[] = "12345678";
 
 // -- Method declarations.
 void iotWebConfConvertStringParameters(void);
+void handleRoot(void);
 
 // Callback method declarations - find implementation after IotWebConf initialization
 void wifiConnected();
