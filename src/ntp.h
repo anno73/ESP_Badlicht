@@ -1,6 +1,6 @@
 #pragma once
 
-#define MYTZ TZ_Europe_Paris
+#define MYTZ TZ_Europe_Paris    // As found in %USERPROFILE%\.platformio\packages\framework-arduinoespressif8266\cores\esp8266\TZ.h
 
 const int32_t NTP_MIN_TIME_EPOCH = 1577836800; // 2020-01-01-00:00:00
 
